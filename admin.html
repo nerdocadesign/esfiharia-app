@@ -1,107 +1,68 @@
+<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin - Esfiharia Delivery</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Gerenciamento de Cardápio</title>
 </head>
 <body>
-  <div class="admin-container">
-    <h1>Administração do Cardápio</h1>
+  <h1>Gerenciamento de Cardápio</h1>
 
-    <!-- Formulários para editar cardápio (Exemplo de categorias e produtos) -->
-    <div id="categorias">
-      <h2>Categorias</h2>
-      <input type="text" id="novaCategoria" placeholder="Nova Categoria" />
-      <button onclick="adicionarCategoria()">Adicionar Categoria</button>
-      <ul id="listaCategorias"></ul>
-    </div>
+  <form id="cardapioForm">
+    <label for="nome">Nome da Categoria:</label>
+    <input type="text" id="nomeCategoria" name="nomeCategoria" required>
+    <button type="submit">Adicionar Categoria</button>
+  </form>
 
-    <div id="produtos">
-      <h2>Produtos</h2>
-      <input type="text" id="novoProduto" placeholder="Novo Produto" />
-      <button onclick="adicionarProduto()">Adicionar Produto</button>
-      <ul id="listaProdutos"></ul>
-    </div>
-
-    <button onclick="salvarCardapio()">Salvar Alterações</button>
-  </div>
+  <h2>Cardápio Atual</h2>
+  <pre id="cardapioDisplay"></pre>
 
   <script>
-    // Carregar os dados do cardápio
-    fetch('/api/cardapio')
-      .then(response => response.json())
-      .then(data => {
-        // Exibir categorias e produtos
-        const categorias = data.categorias || [];
-        const produtos = data.produtos || [];
+    const cardapioDisplay = document.getElementById('cardapioDisplay');
+    const cardapioForm = document.getElementById('cardapioForm');
 
-        // Exibir categorias
-        const listaCategorias = document.getElementById('listaCategorias');
-        categorias.forEach(categoria => {
-          const li = document.createElement('li');
-          li.textContent = categoria;
-          listaCategorias.appendChild(li);
-        });
-
-        // Exibir produtos
-        const listaProdutos = document.getElementById('listaProdutos');
-        produtos.forEach(produto => {
-          const li = document.createElement('li');
-          li.textContent = produto.nome;
-          listaProdutos.appendChild(li);
-        });
-      })
-      .catch(error => console.error('Erro ao carregar cardápio:', error));
-
-    // Função para adicionar categoria
-    function adicionarCategoria() {
-      const novaCategoria = document.getElementById('novaCategoria').value;
-      if (novaCategoria) {
-        // Adicionar a nova categoria localmente (na lista do admin)
-        const li = document.createElement('li');
-        li.textContent = novaCategoria;
-        document.getElementById('listaCategorias').appendChild(li);
-      }
+    // Função para carregar o cardápio atual
+    function carregarCardapio() {
+      fetch('/api/cardapio')
+        .then(response => response.json())
+        .then(data => {
+          cardapioDisplay.textContent = JSON.stringify(data, null, 2);
+        })
+        .catch(error => console.error('Erro ao carregar o cardápio:', error));
     }
 
-    // Função para adicionar produto
-    function adicionarProduto() {
-      const novoProduto = document.getElementById('novoProduto').value;
-      if (novoProduto) {
-        // Adicionar o novo produto localmente (na lista do admin)
-        const li = document.createElement('li');
-        li.textContent = novoProduto;
-        document.getElementById('listaProdutos').appendChild(li);
-      }
-    }
+    // Função para enviar dados atualizados do cardápio
+    cardapioForm.addEventListener('submit', (event) => {
+      event.preventDefault();
 
-    // Função para salvar as alterações
-    function salvarCardapio() {
-      const categorias = Array.from(document.querySelectorAll('#listaCategorias li')).map(li => li.textContent);
-      const produtos = Array.from(document.querySelectorAll('#listaProdutos li')).map(li => ({ nome: li.textContent }));
+      const novaCategoria = document.getElementById('nomeCategoria').value;
 
-      const dadosAtualizados = {
-        categorias,
-        produtos,
-        textoBotao: 'Meu Pedido',
-      };
-
-      // Enviar os dados atualizados para o serverless
       fetch('/api/cardapio', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(dadosAtualizados),
+        body: JSON.stringify({
+          categorias: [novaCategoria],
+          produtos: [],
+          header: { nome: 'Nova Esfiharia', imagem: '' },
+          textoBotao: 'Meu Pedido'
+        })
       })
-      .then(response => response.json())
-      .then(data => {
-        alert('Cardápio atualizado com sucesso!');
-      })
-      .catch(error => console.error('Erro ao salvar cardápio:', error));
-    }
+        .then(response => response.json())
+        .then(data => {
+          if (data.message) {
+            alert('Cardápio atualizado!');
+            carregarCardapio(); // Recarrega o cardápio após a atualização
+          } else {
+            alert('Erro ao atualizar o cardápio.');
+          }
+        })
+        .catch(error => console.error('Erro ao atualizar o cardápio:', error));
+    });
+
+    carregarCardapio(); // Carrega o cardápio ao iniciar a página
   </script>
 </body>
 </html>
