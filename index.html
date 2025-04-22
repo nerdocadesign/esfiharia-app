@@ -41,165 +41,176 @@
     </div>
   </div>
 
-  <script>
-    fetch('/api/cardapio')  // Chama a função serverless no Vercel
-      .then(response => response.json())
-      .then(data => {
-        const categorias = data.categorias || [];
-        const produtos = data.produtos || [];
-        const textoBotao = data.textoBotao || 'Meu Pedido';
+ <script>
+   let selecionados = []; // Agora está no escopo global! 
 
-        const nomeElement = document.querySelector('.nome-esfiharia');
-        const imagemElement = document.querySelector('.foto-esfihas');
+  // Função 'enviarPedido' dentro do contexto correto
+      function enviarPedido() {
+        const nome = document.getElementById('nomeCliente').value.trim();
+        if (!nome) return alert('Por favor, informe seu nome!');
+        const endereco = document.getElementById('enderecoCliente').value.trim();
+        const obs = document.getElementById('observacoes').value.trim();
 
-        if (data.header) {
-          if (nomeElement) nomeElement.textContent = data.header.nome || 'Esfiharia';
-          if (imagemElement) imagemElement.src = data.header.imagem || '';
-        }
+        let msg = `Pedido de Esfiharia – Cliente: ${nome}%0A`;
 
-        const filtros = document.getElementById('filtros');
-        const todosBtn = document.getElementById('todosBtn');
-        const productList = document.getElementById('productList');
-        const resumoPedido = document.getElementById('resumoPedido');
-        const mensagemNenhumProduto = document.getElementById('mensagemNenhumProduto');
+        if (endereco) msg += `Endereço: ${endereco}%0A`;
+        if (obs) msg += `Observações: ${obs}%0A`;
 
-        let selecionados = [];
+        msg += `%0AItens selecionados:%0A`;
 
-        todosBtn.textContent = textoBotao;
-
-        categorias.forEach(cat => {
-          const btn = document.createElement('button');
-          btn.textContent = cat;
-          btn.addEventListener('click', () => filtrarPorCategoria(cat, btn));
-          filtros.appendChild(btn);
+        selecionados.forEach(p => {
+          msg += `* ${p.nome} - ${p.quantidade} un - R$ ${(p.preco * p.quantidade).toFixed(2)}%0A`;
         });
 
-        function filtrarPorCategoria(categoria, btnClicado) {
-          document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
-          btnClicado.classList.add('active');
-          exibirProdutos(produtos.filter(p => p.categoria === categoria));
-        }
+        const total = selecionados.reduce((soma, p) => soma + (p.preco * p.quantidade), 0);
+        msg += `%0A💰 Total: R$ ${total.toFixed(2)}`;
 
-        todosBtn.addEventListener('click', () => {
-          document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
-          todosBtn.classList.add('active');
-          exibirProdutos(selecionados);
-        });
+        const link = `https://wa.me/5514982006515?text=${msg}`;
+        window.open(link, '_blank');
+      }
+  fetch('http://nerdoca.myartsonline.com/cardapio.json')
+    .then(response => response.json())
+    .then(data => {
+      const categorias = data.categorias || [];
+      const produtos = data.produtos || [];
+      const textoBotao = data.textoBotao || 'Meu Pedido';
 
-        function exibirProdutos(lista) {
+      const nomeElement = document.querySelector('.nome-esfiharia');
+      const imagemElement = document.querySelector('.foto-esfihas');
+
+      if (data.header) {
+        nomeElement.textContent = data.header.nome || 'Esfiharia';
+        imagemElement.src = data.header.imagem || '';
+      }
+
+      const filtros = document.getElementById('filtros');
+      const todosBtn = document.getElementById('todosBtn');
+      const productList = document.getElementById('productList');
+      const resumoPedido = document.getElementById('resumoPedido');
+      const mensagemNenhumProduto = document.getElementById('mensagemNenhumProduto');
+
+
+      todosBtn.textContent = textoBotao;
+
+      categorias.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.textContent = cat;
+        btn.addEventListener('click', () => filtrarPorCategoria(cat, btn));
+        filtros.appendChild(btn);
+      });
+
+      function aplicarFiltroTodos() {
+        document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
+        todosBtn.classList.add('active');
+
+        if (selecionados.length === 0) {
+          mensagemNenhumProduto.style.display = 'block';
           productList.innerHTML = '';
+        } else {
+          mensagemNenhumProduto.style.display = 'none';
+          exibirProdutos(selecionados);
+        }
+      }
 
-          if (lista.length === 0) {
-            mensagemNenhumProduto.style.display = 'block';
-            return;
-          } else {
-            mensagemNenhumProduto.style.display = 'none';
-          }
+      todosBtn.addEventListener('click', aplicarFiltroTodos);
 
-          lista.forEach(prod => {
-            const divProduto = document.createElement('div');
-            divProduto.className = 'produto';
+      function filtrarPorCategoria(categoria, btnClicado) {
+        document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
+        btnClicado.classList.add('active');
+        exibirProdutos(produtos.filter(p => p.categoria === categoria));
+      }
 
-            const divProdutoLinha = document.createElement('div');
-            divProdutoLinha.className = 'produto-linha';
+      function exibirProdutos(lista) {
+        productList.innerHTML = '';
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'check-produto';
-            checkbox.checked = selecionados.some(p => p.nome === prod.nome);
-            checkbox.addEventListener('change', () => alternarProduto(prod.nome));
-
-            const inputQuantidade = document.createElement('input');
-            inputQuantidade.type = 'number';
-            inputQuantidade.className = 'quantidade';
-            inputQuantidade.min = 1;
-            inputQuantidade.value = selecionados.find(p => p.nome === prod.nome)?.quantidade || 1;
-
-            // 🔥 Aqui adiciona o evento para atualizar a quantidade em tempo real:
-            inputQuantidade.addEventListener('input', () => {
-              const produtoSelecionado = selecionados.find(p => p.nome === prod.nome);
-              if (produtoSelecionado) {
-                produtoSelecionado.quantidade = parseInt(inputQuantidade.value) || 1;
-                atualizarResumo();
-              }
-            });
-
-            const labelNome = document.createElement('label');
-            labelNome.className = 'nome-produto';
-            labelNome.textContent = prod.nome;
-
-            const spanPreco = document.createElement('span');
-            spanPreco.className = 'preco-produto';
-            spanPreco.setAttribute('data-preco', prod.preco);
-            spanPreco.textContent = `R$ ${parseFloat(prod.preco).toFixed(2)}`;
-
-            divProdutoLinha.appendChild(checkbox);
-            divProdutoLinha.appendChild(inputQuantidade);
-            divProdutoLinha.appendChild(labelNome);
-            divProdutoLinha.appendChild(spanPreco);
-
-            divProduto.appendChild(divProdutoLinha);
-            productList.appendChild(divProduto);
-          });
+        if (lista.length === 0) {
+          mensagemNenhumProduto.style.display = 'block';
+          return;
+        } else {
+          mensagemNenhumProduto.style.display = 'none';
         }
 
-        function alternarProduto(nome) {
-          const index = selecionados.findIndex(p => p.nome === nome);
-          const todosInputs = document.querySelectorAll('.produto-linha');
+        lista.forEach(prod => {
+          const divProduto = document.createElement('div');
+          divProduto.className = 'produto';
 
-          const input = Array.from(todosInputs).find(div => {
-            const label = div.querySelector('.nome-produto');
-            return label && label.textContent === nome;
+          const divProdutoLinha = document.createElement('div');
+          divProdutoLinha.className = 'produto-linha';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'check-produto';
+          checkbox.checked = selecionados.some(p => p.nome === prod.nome);
+          checkbox.addEventListener('change', () => alternarProduto(prod.nome));
+
+          const inputQuantidade = document.createElement('input');
+          inputQuantidade.type = 'number';
+          inputQuantidade.className = 'quantidade';
+          inputQuantidade.min = 1;
+          inputQuantidade.value = selecionados.find(p => p.nome === prod.nome)?.quantidade || 1;
+          inputQuantidade.addEventListener('input', () => {
+            const produtoSelecionado = selecionados.find(p => p.nome === prod.nome);
+            if (produtoSelecionado) {
+              produtoSelecionado.quantidade = parseInt(inputQuantidade.value) || 1;
+              atualizarResumo();
+            }
           });
 
-          const inputQuantidade = input?.querySelector('.quantidade');
-          const quantidade = inputQuantidade ? parseInt(inputQuantidade.value) : 1;
+          const labelNome = document.createElement('label');
+          labelNome.className = 'nome-produto';
+          labelNome.textContent = prod.nome;
 
-          if (index !== -1) {
-            selecionados.splice(index, 1);
-          } else {
-            const prod = produtos.find(p => p.nome === nome);
-            selecionados.push({ ...prod, quantidade });
-          }
+          const spanPreco = document.createElement('span');
+          spanPreco.className = 'preco-produto';
+          spanPreco.setAttribute('data-preco', prod.preco);
+          spanPreco.textContent = `R$ ${parseFloat(prod.preco).toFixed(2)}`;
 
-          atualizarResumo();
+          divProdutoLinha.appendChild(checkbox);
+          divProdutoLinha.appendChild(inputQuantidade);
+          divProdutoLinha.appendChild(labelNome);
+          divProdutoLinha.appendChild(spanPreco);
 
-          const btnAtivo = document.querySelector('#filtros button.active');
-          if (btnAtivo === todosBtn) exibirProdutos(selecionados);
+          divProduto.appendChild(divProdutoLinha);
+          productList.appendChild(divProduto);
+        });
+      }
+
+      function alternarProduto(nome) {
+        const index = selecionados.findIndex(p => p.nome === nome);
+        const todosInputs = document.querySelectorAll('.produto-linha');
+        const input = Array.from(todosInputs).find(div => {
+          const label = div.querySelector('.nome-produto');
+          return label && label.textContent === nome;
+        });
+
+        const inputQuantidade = input?.querySelector('.quantidade');
+        const quantidade = inputQuantidade ? parseInt(inputQuantidade.value) : 1;
+
+        if (index !== -1) {
+          selecionados.splice(index, 1);
+        } else {
+          const prod = produtos.find(p => p.nome === nome);
+          selecionados.push({ ...prod, quantidade });
         }
 
-        function atualizarResumo() {
-          let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
-          let itens = selecionados.reduce((soma, p) => soma + p.quantidade, 0);
-          resumoPedido.textContent = `Total: R$ ${total.toFixed(2)} – ${itens} itens`;
-        }
+        atualizarResumo();
 
-        function enviarPedido() {
-          const nome = document.getElementById('nomeCliente').value.trim();
-          if (!nome) return alert('Por favor, informe seu nome!');
-          let endereco = document.getElementById('enderecoCliente').value.trim();
-          let obs = document.getElementById('observacoes').value.trim();
+        const btnAtivo = document.querySelector('#filtros button.active');
+        if (btnAtivo === todosBtn) exibirProdutos(selecionados);
+      }
 
-          let msg = `Olá, meu nome é ${nome}%0A`;
-          if (endereco) msg += `Endereço: ${endereco}%0A`;
-          if (obs) msg += `Observações: ${obs}%0A`;
-          msg += `%0AMeu pedido:%0A`;
+      function atualizarResumo() {
+        let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+        let itens = selecionados.reduce((soma, p) => soma + p.quantidade, 0);
+        resumoPedido.textContent = `Total: R$ ${total.toFixed(2)} – ${itens} itens`;
+      }
 
-          selecionados.forEach(p => {
-            msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})%0A`;
-          });
 
-          let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
-          msg += `%0ATotal: R$ ${total.toFixed(2)}`;
+      aplicarFiltroTodos(); // Exibe o filtro "Meu Pedido" corretamente ao carregar
+    })
+    .catch(error => console.error('Erro ao carregar dados do JSON:', error));
+</script>
 
-          const link = `https://wa.me/SEUNUMERO?text=${msg}`;
-          window.open(link, '_blank');
-        }
-
-        exibirProdutos(produtos); // Exibe os produtos de alguma categoria ou tudo inicialmente
-      })
-      .catch(error => console.error('Erro ao carregar dados do JSON:', error));
-  </script>
 
 </body>
 </html>
