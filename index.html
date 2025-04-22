@@ -68,7 +68,7 @@
         const link = `https://wa.me/5514982006515?text=${msg}`;
         window.open(link, '_blank');
       }
-  fetch('https://esfiharia-app.vercel.app/cardapio.json')
+  fetch('https://esfiharia-app.vercel.app/api/cardapio')
     .then(response => response.json())
     .then(data => {
       const categorias = data.categorias || [];
