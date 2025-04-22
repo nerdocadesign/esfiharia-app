@@ -1,23 +1,24 @@
 // /api/cardapio.js
+import fs from 'fs';
+
 export default function handler(req, res) {
-  const fs = require('fs');
-  
+  const caminhoArquivo = './cardapio.json';
+
   if (req.method === 'GET') {
-    // Carregar os dados do arquivo cardapio.json
-    fs.readFile('cardapio.json', 'utf8', (err, data) => {
+    // Lê o conteúdo do arquivo JSON e envia de volta para o frontend
+    fs.readFile(caminhoArquivo, 'utf8', (err, data) => {
       if (err) {
-        res.status(500).json({ error: 'Erro ao ler arquivo JSON' });
-        return;
+        return res.status(500).json({ error: 'Erro ao ler arquivo JSON' });
       }
-      res.status(200).json(JSON.parse(data));
+      res.status(200).json(JSON.parse(data)); // Envia os dados para o frontend
     });
   } else if (req.method === 'POST') {
-    // Salvar os dados no arquivo cardapio.json
-    const dados = req.body; // O corpo do pedido conterá o JSON atualizado.
-    fs.writeFile('cardapio.json', JSON.stringify(dados), (err) => {
+    // Atualiza o arquivo JSON com os dados enviados pelo frontend
+    const novosDados = req.body;
+
+    fs.writeFile(caminhoArquivo, JSON.stringify(novosDados, null, 2), 'utf8', (err) => {
       if (err) {
-        res.status(500).json({ error: 'Erro ao salvar arquivo JSON' });
-        return;
+        return res.status(500).json({ error: 'Erro ao salvar dados no arquivo JSON' });
       }
       res.status(200).json({ success: true });
     });
