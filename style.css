@@ -278,8 +278,7 @@ button.finalizar:hover {
   font-size: 16px; /* ajuda no mobile */
 }
 /* estilo para o painel do admin */
-<style>
-    /* Aqui você pode manter o mesmo CSS que tinha no admin.html */
+
     body {
       font-family: Arial, sans-serif;
       background-color: #f9f9f9;
@@ -404,4 +403,3 @@ button.finalizar:hover {
         padding: 6px;
       }
     }
-  </style>
