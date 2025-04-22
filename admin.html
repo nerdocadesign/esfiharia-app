@@ -3,308 +3,105 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Administração Esfiharia Delivery</title>
+  <title>Admin - Esfiharia Delivery</title>
   <link rel="stylesheet" href="style.css">
- <style>
-    /* Aqui você pode manter o mesmo CSS que tinha no admin.html */
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 800px;
-      margin: 40px auto;
-      background-color: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.05);
-    }
-    .titulo {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 24px;
-      color: #333;
-    }
-    h2 {
-      margin-top: 20px;
-      color: #444;
-      font-size: 18px;
-    }
-    .input-field {
-      flex: 1;
-      padding: 8px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-      margin: 8px 0;
-    }
-    .input-container {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .btn,
-    .btn-adicionar-categoria {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .btn:hover,
-    .btn-adicionar-categoria:hover {
-      background-color: #218838;
-    }
-    .btn.remove {
-      background-color: #dc3545;
-    }
-    .btn.remove:hover {
-      background-color: #c82333;
-    }
-    .btn.edit {
-      background-color: #ffc107;
-      color: #333;
-    }
-    .btn.edit:hover {
-      background-color: #e0a800;
-    }
-    .lista {
-      margin-top: 15px;
-    }
-    .item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 8px;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background-color: #f9f9f9;
-      margin-bottom: 8px;
-    }
-    .item-buttons {
-      display: flex;
-      gap: 8px;
-    }
-    .tabela-wrapper {
-      overflow-x: auto;
-      margin-top: 16px;
-    }
-    .tabela-produtos {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    .tabela-produtos th,
-    .tabela-produtos td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-    .tabela-produtos th {
-      background-color: #f0f0f0;
-      font-weight: bold;
-    }
-    .tabela-produtos td .btn {
-      padding: 6px 10px;
-      font-size: 12px;
-      margin-right: 4px;
-    }
-    @media (max-width: 500px) {
-      .input-field {
-        font-size: 12px;
-      }
-      .btn,
-      .btn-adicionar-categoria {
-        font-size: 12px;
-      }
-      .tabela-produtos th,
-      .tabela-produtos td {
-        font-size: 12px;
-        padding: 6px;
-      }
-    }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="titulo">Administração Esfiharia Delivery</h1>
+  <div class="admin-container">
+    <h1>Administração do Cardápio</h1>
 
-    <h2>Editar Informações do Header</h2>
-    <div class="input-container">
-      <input type="text" id="inputNomeEsfiharia" class="input-field" placeholder="Nome da Esfiharia">
-      <input type="text" id="inputImagemHeader" class="input-field" placeholder="URL da imagem do header">
-      <button class="btn-adicionar-categoria" onclick="salvarHeader()">Salvar Header</button>
+    <!-- Formulários para editar cardápio (Exemplo de categorias e produtos) -->
+    <div id="categorias">
+      <h2>Categorias</h2>
+      <input type="text" id="novaCategoria" placeholder="Nova Categoria" />
+      <button onclick="adicionarCategoria()">Adicionar Categoria</button>
+      <ul id="listaCategorias"></ul>
     </div>
 
-    <div>
-      <h2>Gerenciar Categorias</h2>
-      <div class="input-container">
-        <input type="text" id="inputCategoria" class="input-field" placeholder="Adicionar nova categoria">
-        <button class="btn btn-adicionar-categoria" onclick="adicionarCategoria()">Adicionar Categoria</button>
-      </div>
-      <div id="listaCategorias" class="lista"></div>
+    <div id="produtos">
+      <h2>Produtos</h2>
+      <input type="text" id="novoProduto" placeholder="Novo Produto" />
+      <button onclick="adicionarProduto()">Adicionar Produto</button>
+      <ul id="listaProdutos"></ul>
     </div>
 
-    <div>
-      <h2>Gerenciar Produtos</h2>
-      <input type="text" id="inputProduto" class="input-field" placeholder="Nome do produto">
-      <input type="number" id="inputPreco" class="input-field" placeholder="Preço do produto">
-      <select id="selectCategoriaProduto" class="input-field"></select>
-      <button class="btn" onclick="adicionarProduto()">Adicionar Produto</button>
-
-      <div class="tabela-wrapper">
-        <table class="tabela-produtos">
-          <thead>
-            <tr>
-              <th>Produto</th>
-              <th>Preço</th>
-              <th>Categoria</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="listaProdutos"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div>
-      <h2>Editar Texto dos Botões</h2>
-      <input type="text" id="inputTextoBotao" class="input-field" placeholder="Texto do botão 'Meu Pedido'">
-      <button class="btn" onclick="salvarTextoBotao()">Salvar Texto</button>
-    </div>
+    <button onclick="salvarCardapio()">Salvar Alterações</button>
   </div>
 
   <script>
-    // Pega dados do localStorage ou usa padrão vazio
-    let dados = JSON.parse(localStorage.getItem('cardapio')) || {
-      categorias: [],
-      produtos: [],
-      header: {},
-      textoBotao: 'Meu Pedido'
-    };
+    // Carregar os dados do cardápio
+    fetch('/api/cardapio')
+      .then(response => response.json())
+      .then(data => {
+        // Exibir categorias e produtos
+        const categorias = data.categorias || [];
+        const produtos = data.produtos || [];
 
-    let categorias = dados.categorias;
-    let produtos = dados.produtos;
-    let header = dados.header;
-    let textoBotao = dados.textoBotao;
+        // Exibir categorias
+        const listaCategorias = document.getElementById('listaCategorias');
+        categorias.forEach(categoria => {
+          const li = document.createElement('li');
+          li.textContent = categoria;
+          listaCategorias.appendChild(li);
+        });
 
-    function salvarDados() {
-      localStorage.setItem('cardapio', JSON.stringify({ categorias, produtos, header, textoBotao }));
-      alert('Alterações salvas com sucesso!');
-    }
+        // Exibir produtos
+        const listaProdutos = document.getElementById('listaProdutos');
+        produtos.forEach(produto => {
+          const li = document.createElement('li');
+          li.textContent = produto.nome;
+          listaProdutos.appendChild(li);
+        });
+      })
+      .catch(error => console.error('Erro ao carregar cardápio:', error));
 
-    function atualizarCategorias() {
-      const lista = document.getElementById('listaCategorias');
-      const select = document.getElementById('selectCategoriaProduto');
-      lista.innerHTML = '';
-      select.innerHTML = '<option value="">Selecione uma categoria</option>';
-      categorias.forEach((cat, i) => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-          <div>${cat}</div>
-          <div class="item-buttons">
-            <button class="btn remove" onclick="removerCategoria(${i})">Remover</button>
-          </div>`;
-        lista.appendChild(div);
-
-        const option = document.createElement('option');
-        option.value = cat;
-        option.textContent = cat;
-        select.appendChild(option);
-      });
-    }
-
-    function atualizarProdutos() {
-      const tbody = document.getElementById('listaProdutos');
-      tbody.innerHTML = '';
-      produtos.forEach((p, i) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${p.nome}</td>
-          <td>R$ ${parseFloat(p.preco).toFixed(2)}</td>
-          <td>${p.categoria}</td>
-          <td>
-            <button class="btn edit" onclick="editarProduto(${i})">Editar</button>
-            <button class="btn remove" onclick="removerProduto(${i})">Remover</button>
-          </td>`;
-        tbody.appendChild(tr);
-      });
-    }
-
+    // Função para adicionar categoria
     function adicionarCategoria() {
-      const input = document.getElementById('inputCategoria');
-      const valor = input.value.trim();
-      if (valor && !categorias.includes(valor)) {
-        categorias.push(valor);
-        input.value = '';
-        atualizarCategorias();
-        salvarDados();
+      const novaCategoria = document.getElementById('novaCategoria').value;
+      if (novaCategoria) {
+        // Adicionar a nova categoria localmente (na lista do admin)
+        const li = document.createElement('li');
+        li.textContent = novaCategoria;
+        document.getElementById('listaCategorias').appendChild(li);
       }
     }
 
-    function removerCategoria(i) {
-      const removida = categorias[i];
-      categorias.splice(i, 1);
-      produtos = produtos.filter(p => p.categoria !== removida);
-      atualizarCategorias();
-      atualizarProdutos();
-      salvarDados();
-    }
-
+    // Função para adicionar produto
     function adicionarProduto() {
-      const nome = document.getElementById('inputProduto').value.trim();
-      const preco = document.getElementById('inputPreco').value.trim();
-      const categoria = document.getElementById('selectCategoriaProduto').value;
-      if (nome && preco && categoria) {
-        produtos.push({ nome, preco, categoria });
-        document.getElementById('inputProduto').value = '';
-        document.getElementById('inputPreco').value = '';
-        atualizarProdutos();
-        salvarDados();
+      const novoProduto = document.getElementById('novoProduto').value;
+      if (novoProduto) {
+        // Adicionar o novo produto localmente (na lista do admin)
+        const li = document.createElement('li');
+        li.textContent = novoProduto;
+        document.getElementById('listaProdutos').appendChild(li);
       }
     }
 
-    function removerProduto(i) {
-      produtos.splice(i, 1);
-      atualizarProdutos();
-      salvarDados();
+    // Função para salvar as alterações
+    function salvarCardapio() {
+      const categorias = Array.from(document.querySelectorAll('#listaCategorias li')).map(li => li.textContent);
+      const produtos = Array.from(document.querySelectorAll('#listaProdutos li')).map(li => ({ nome: li.textContent }));
+
+      const dadosAtualizados = {
+        categorias,
+        produtos,
+        textoBotao: 'Meu Pedido',
+      };
+
+      // Enviar os dados atualizados para o serverless
+      fetch('/api/cardapio', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dadosAtualizados),
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('Cardápio atualizado com sucesso!');
+      })
+      .catch(error => console.error('Erro ao salvar cardápio:', error));
     }
-
-    function editarProduto(i) {
-      const p = produtos[i];
-      document.getElementById('inputProduto').value = p.nome;
-      document.getElementById('inputPreco').value = p.preco;
-      document.getElementById('selectCategoriaProduto').value = p.categoria;
-      removerProduto(i);
-    }
-
-    function salvarHeader() {
-      header.nome = document.getElementById('inputNomeEsfiharia').value.trim();
-      header.imagem = document.getElementById('inputImagemHeader').value.trim();
-      salvarDados();
-    }
-
-    function salvarTextoBotao() {
-      textoBotao = document.getElementById('inputTextoBotao').value.trim();
-      salvarDados();
-    }
-
-    // Inicializa os campos
-    document.getElementById('inputNomeEsfiharia').value = header.nome || '';
-    document.getElementById('inputImagemHeader').value = header.imagem || '';
-    document.getElementById('inputTextoBotao').value = textoBotao || '';
-
-    atualizarCategorias();
-    atualizarProdutos();
   </script>
 </body>
 </html>
