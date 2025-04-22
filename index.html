@@ -42,167 +42,164 @@
   </div>
 
   <script>
- fetch('cardapio.json')
-  .then(response => response.json())
-  .then(data => {
-    const categorias = data.categorias || [];
-    const produtos = data.produtos || [];
-    const textoBotao = data.textoBotao || 'Meu Pedido';
+    fetch('/api/cardapio')  // Chama a função serverless no Vercel
+      .then(response => response.json())
+      .then(data => {
+        const categorias = data.categorias || [];
+        const produtos = data.produtos || [];
+        const textoBotao = data.textoBotao || 'Meu Pedido';
 
-    const nomeElement = document.querySelector('.nome-esfiharia');
-    const imagemElement = document.querySelector('.foto-esfihas');
+        const nomeElement = document.querySelector('.nome-esfiharia');
+        const imagemElement = document.querySelector('.foto-esfihas');
 
-    if (data.header) {
-      if (nomeElement) nomeElement.textContent = data.header.nome || 'Esfiharia';
-      if (imagemElement) imagemElement.src = data.header.imagem || '';
-    }
+        if (data.header) {
+          if (nomeElement) nomeElement.textContent = data.header.nome || 'Esfiharia';
+          if (imagemElement) imagemElement.src = data.header.imagem || '';
+        }
 
-    const filtros = document.getElementById('filtros');
-    const todosBtn = document.getElementById('todosBtn');
-    const productList = document.getElementById('productList');
-    const resumoPedido = document.getElementById('resumoPedido');
-    const mensagemNenhumProduto = document.getElementById('mensagemNenhumProduto');
+        const filtros = document.getElementById('filtros');
+        const todosBtn = document.getElementById('todosBtn');
+        const productList = document.getElementById('productList');
+        const resumoPedido = document.getElementById('resumoPedido');
+        const mensagemNenhumProduto = document.getElementById('mensagemNenhumProduto');
 
-    let selecionados = [];
+        let selecionados = [];
 
-    todosBtn.textContent = textoBotao;
+        todosBtn.textContent = textoBotao;
 
-    categorias.forEach(cat => {
-      const btn = document.createElement('button');
-      btn.textContent = cat;
-      btn.addEventListener('click', () => filtrarPorCategoria(cat, btn));
-      filtros.appendChild(btn);
-    });
+        categorias.forEach(cat => {
+          const btn = document.createElement('button');
+          btn.textContent = cat;
+          btn.addEventListener('click', () => filtrarPorCategoria(cat, btn));
+          filtros.appendChild(btn);
+        });
 
-    function filtrarPorCategoria(categoria, btnClicado) {
-      document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
-      btnClicado.classList.add('active');
-      exibirProdutos(produtos.filter(p => p.categoria === categoria));
-    }
+        function filtrarPorCategoria(categoria, btnClicado) {
+          document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
+          btnClicado.classList.add('active');
+          exibirProdutos(produtos.filter(p => p.categoria === categoria));
+        }
 
-    todosBtn.addEventListener('click', () => {
-      document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
-      todosBtn.classList.add('active');
-      exibirProdutos(selecionados);
-    });
+        todosBtn.addEventListener('click', () => {
+          document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
+          todosBtn.classList.add('active');
+          exibirProdutos(selecionados);
+        });
 
-   function exibirProdutos(lista) {
-  productList.innerHTML = '';
+        function exibirProdutos(lista) {
+          productList.innerHTML = '';
 
-  if (lista.length === 0) {
-    mensagemNenhumProduto.style.display = 'block';
-    return;
-  } else {
-    mensagemNenhumProduto.style.display = 'none';
-  }
+          if (lista.length === 0) {
+            mensagemNenhumProduto.style.display = 'block';
+            return;
+          } else {
+            mensagemNenhumProduto.style.display = 'none';
+          }
 
-  lista.forEach(prod => {
-    const divProduto = document.createElement('div');
-    divProduto.className = 'produto';
+          lista.forEach(prod => {
+            const divProduto = document.createElement('div');
+            divProduto.className = 'produto';
 
-    const divProdutoLinha = document.createElement('div');
-    divProdutoLinha.className = 'produto-linha';
+            const divProdutoLinha = document.createElement('div');
+            divProdutoLinha.className = 'produto-linha';
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'check-produto';
-    checkbox.checked = selecionados.some(p => p.nome === prod.nome);
-    checkbox.addEventListener('change', () => alternarProduto(prod.nome));
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'check-produto';
+            checkbox.checked = selecionados.some(p => p.nome === prod.nome);
+            checkbox.addEventListener('change', () => alternarProduto(prod.nome));
 
-    const inputQuantidade = document.createElement('input');
-    inputQuantidade.type = 'number';
-    inputQuantidade.className = 'quantidade';
-    inputQuantidade.min = 1;
-    inputQuantidade.value = selecionados.find(p => p.nome === prod.nome)?.quantidade || 1;
+            const inputQuantidade = document.createElement('input');
+            inputQuantidade.type = 'number';
+            inputQuantidade.className = 'quantidade';
+            inputQuantidade.min = 1;
+            inputQuantidade.value = selecionados.find(p => p.nome === prod.nome)?.quantidade || 1;
 
-    // 🔥 Aqui adiciona o evento para atualizar a quantidade em tempo real:
-    inputQuantidade.addEventListener('input', () => {
-      const produtoSelecionado = selecionados.find(p => p.nome === prod.nome);
-      if (produtoSelecionado) {
-        produtoSelecionado.quantidade = parseInt(inputQuantidade.value) || 1;
-        atualizarResumo();
-      }
-    });
+            // 🔥 Aqui adiciona o evento para atualizar a quantidade em tempo real:
+            inputQuantidade.addEventListener('input', () => {
+              const produtoSelecionado = selecionados.find(p => p.nome === prod.nome);
+              if (produtoSelecionado) {
+                produtoSelecionado.quantidade = parseInt(inputQuantidade.value) || 1;
+                atualizarResumo();
+              }
+            });
 
-    const labelNome = document.createElement('label');
-    labelNome.className = 'nome-produto';
-    labelNome.textContent = prod.nome;
+            const labelNome = document.createElement('label');
+            labelNome.className = 'nome-produto';
+            labelNome.textContent = prod.nome;
 
-    const spanPreco = document.createElement('span');
-    spanPreco.className = 'preco-produto';
-    spanPreco.setAttribute('data-preco', prod.preco);
-    spanPreco.textContent = `R$ ${parseFloat(prod.preco).toFixed(2)}`;
+            const spanPreco = document.createElement('span');
+            spanPreco.className = 'preco-produto';
+            spanPreco.setAttribute('data-preco', prod.preco);
+            spanPreco.textContent = `R$ ${parseFloat(prod.preco).toFixed(2)}`;
 
-    divProdutoLinha.appendChild(checkbox);
-    divProdutoLinha.appendChild(inputQuantidade);
-    divProdutoLinha.appendChild(labelNome);
-    divProdutoLinha.appendChild(spanPreco);
+            divProdutoLinha.appendChild(checkbox);
+            divProdutoLinha.appendChild(inputQuantidade);
+            divProdutoLinha.appendChild(labelNome);
+            divProdutoLinha.appendChild(spanPreco);
 
-    divProduto.appendChild(divProdutoLinha);
-    productList.appendChild(divProduto);
-  });
-}
+            divProduto.appendChild(divProdutoLinha);
+            productList.appendChild(divProduto);
+          });
+        }
 
+        function alternarProduto(nome) {
+          const index = selecionados.findIndex(p => p.nome === nome);
+          const todosInputs = document.querySelectorAll('.produto-linha');
 
-    function alternarProduto(nome) {
-      const index = selecionados.findIndex(p => p.nome === nome);
-      const todosInputs = document.querySelectorAll('.produto-linha');
+          const input = Array.from(todosInputs).find(div => {
+            const label = div.querySelector('.nome-produto');
+            return label && label.textContent === nome;
+          });
 
-      const input = Array.from(todosInputs).find(div => {
-        const label = div.querySelector('.nome-produto');
-        return label && label.textContent === nome;
-      });
+          const inputQuantidade = input?.querySelector('.quantidade');
+          const quantidade = inputQuantidade ? parseInt(inputQuantidade.value) : 1;
 
-      const inputQuantidade = input?.querySelector('.quantidade');
-      const quantidade = inputQuantidade ? parseInt(inputQuantidade.value) : 1;
+          if (index !== -1) {
+            selecionados.splice(index, 1);
+          } else {
+            const prod = produtos.find(p => p.nome === nome);
+            selecionados.push({ ...prod, quantidade });
+          }
 
-      if (index !== -1) {
-        selecionados.splice(index, 1);
-      } else {
-        const prod = produtos.find(p => p.nome === nome);
-        selecionados.push({ ...prod, quantidade });
-      }
+          atualizarResumo();
 
-      atualizarResumo();
+          const btnAtivo = document.querySelector('#filtros button.active');
+          if (btnAtivo === todosBtn) exibirProdutos(selecionados);
+        }
 
-      const btnAtivo = document.querySelector('#filtros button.active');
-      if (btnAtivo === todosBtn) exibirProdutos(selecionados);
-    }
+        function atualizarResumo() {
+          let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+          let itens = selecionados.reduce((soma, p) => soma + p.quantidade, 0);
+          resumoPedido.textContent = `Total: R$ ${total.toFixed(2)} – ${itens} itens`;
+        }
 
-    function atualizarResumo() {
-      let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
-      let itens = selecionados.reduce((soma, p) => soma + p.quantidade, 0);
-      resumoPedido.textContent = `Total: R$ ${total.toFixed(2)} – ${itens} itens`;
-    }
+        function enviarPedido() {
+          const nome = document.getElementById('nomeCliente').value.trim();
+          if (!nome) return alert('Por favor, informe seu nome!');
+          let endereco = document.getElementById('enderecoCliente').value.trim();
+          let obs = document.getElementById('observacoes').value.trim();
 
-    function enviarPedido() {
-      const nome = document.getElementById('nomeCliente').value.trim();
-      if (!nome) return alert('Por favor, informe seu nome!');
-      let endereco = document.getElementById('enderecoCliente').value.trim();
-      let obs = document.getElementById('observacoes').value.trim();
+          let msg = `Olá, meu nome é ${nome}%0A`;
+          if (endereco) msg += `Endereço: ${endereco}%0A`;
+          if (obs) msg += `Observações: ${obs}%0A`;
+          msg += `%0AMeu pedido:%0A`;
 
-      let msg = `Olá, meu nome é ${nome}%0A`;
-      if (endereco) msg += `Endereço: ${endereco}%0A`;
-      if (obs) msg += `Observações: ${obs}%0A`;
-      msg += `%0AMeu pedido:%0A`;
+          selecionados.forEach(p => {
+            msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})%0A`;
+          });
 
-      selecionados.forEach(p => {
-        msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})%0A`;
-      });
+          let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+          msg += `%0ATotal: R$ ${total.toFixed(2)}`;
 
-      let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
-      msg += `%0ATotal: R$ ${total.toFixed(2)}`;
+          const link = `https://wa.me/SEUNUMERO?text=${msg}`;
+          window.open(link, '_blank');
+        }
 
-      const link = `https://wa.me/SEUNUMERO?text=${msg}`;
-      window.open(link, '_blank');
-    }
-
-    exibirProdutos(produtos); // Exibe os produtos de alguma categoria ou tudo inicialmente
-  })
-  .catch(error => console.error('Erro ao carregar dados do JSON:', error));
-
-</script>
-
+        exibirProdutos(produtos); // Exibe os produtos de alguma categoria ou tudo inicialmente
+      })
+      .catch(error => console.error('Erro ao carregar dados do JSON:', error));
+  </script>
 
 </body>
 </html>
