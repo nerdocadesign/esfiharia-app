@@ -3,47 +3,206 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cardápio - Esfiharia Delivery</title>
+  <title>Esfiharia Delivery</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-    h1 { text-align: center; }
-    .categoria { margin-bottom: 20px; }
-    .produto { background: #fff; border-radius: 8px; padding: 10px; margin: 8px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .active { background-color: #28a745; color: white; }
   </style>
 </head>
 <body>
-  <h1 id="tituloEsfiharia">Esfiharia</h1>
-  <img id="imgHeader" src="" alt="Header" style="max-width: 100%; margin: 10px 0;" />
-  <div id="conteudoCardapio"></div>
-  <button id="botaoPedido">Meu Pedido</button>
+  <div class="container">
+    <header class="header-esfiharia">
+      <div class="banner-foto">
+        <img src="" alt="Esfihas deliciosas" class="foto-esfihas">
+        <h1 class="nome-esfiharia"></h1>
+      </div>
+    </header>
+
+    <div class="top-info">
+      <input type="text" id="nomeCliente" placeholder="Seu nome" required />
+      <input type="text" id="enderecoCliente" placeholder="Endereço completo (opcional)" />
+      <textarea id="observacoes" rows="2" placeholder="Observações (ex: sem cebola, bem passado...)"></textarea>
+    </div>
+
+    <div id="filtros" class="filtros">
+      <button id="todosBtn" class="active">Meu Pedido</button>
+      <!-- Botões de categoria serão adicionados dinamicamente -->
+    </div>
+
+    <div class="product-list" id="productList"></div>
+
+    <div id="mensagemNenhumProduto" style="display:none; text-align:center; padding:20px; color:#888; font-style:italic;">
+      Nenhum produto selecionado ainda.
+    </div>
+
+    <div class="resumo-container">
+      <div class="resumo" id="resumoPedido">Total: R$0.00 – 0 itens</div>
+      <button class="finalizar" onclick="enviarPedido()">Enviar Pedido</button>
+    </div>
+  </div>
 
   <script>
-    const dados = JSON.parse(localStorage.getItem('cardapio')) || {};
-    document.getElementById('tituloEsfiharia').textContent = dados?.header?.nome || "Esfiharia";
-    document.getElementById('imgHeader').src = dados?.header?.imagem || "";
-    document.getElementById('botaoPedido').textContent = dados?.textoBotao || "Meu Pedido";
+ fetch('cardapio.json')
+  .then(response => response.json())
+  .then(data => {
+    const categorias = data.categorias || [];
+    const produtos = data.produtos || [];
+    const textoBotao = data.textoBotao || 'Meu Pedido';
 
-    const categorias = dados?.categorias || [];
-    const produtos = dados?.produtos || [];
+    const nomeElement = document.querySelector('.nome-esfiharia');
+    const imagemElement = document.querySelector('.foto-esfihas');
 
-    const conteudo = document.getElementById('conteudoCardapio');
+    if (data.header) {
+      if (nomeElement) nomeElement.textContent = data.header.nome || 'Esfiharia';
+      if (imagemElement) imagemElement.src = data.header.imagem || '';
+    }
+
+    const filtros = document.getElementById('filtros');
+    const todosBtn = document.getElementById('todosBtn');
+    const productList = document.getElementById('productList');
+    const resumoPedido = document.getElementById('resumoPedido');
+    const mensagemNenhumProduto = document.getElementById('mensagemNenhumProduto');
+
+    let selecionados = [];
+
+    todosBtn.textContent = textoBotao;
+
     categorias.forEach(cat => {
-      const divCat = document.createElement('div');
-      divCat.className = 'categoria';
-      const titulo = document.createElement('h2');
-      titulo.textContent = cat;
-      divCat.appendChild(titulo);
+      const btn = document.createElement('button');
+      btn.textContent = cat;
+      btn.addEventListener('click', () => filtrarPorCategoria(cat, btn));
+      filtros.appendChild(btn);
+    });
 
-      produtos.filter(p => p.categoria === cat).forEach(p => {
-        const divProd = document.createElement('div');
-        divProd.className = 'produto';
-        divProd.textContent = `${p.nome} - R$ ${parseFloat(p.preco).toFixed(2)}`;
-        divCat.appendChild(divProd);
+    function filtrarPorCategoria(categoria, btnClicado) {
+      document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
+      btnClicado.classList.add('active');
+      exibirProdutos(produtos.filter(p => p.categoria === categoria));
+    }
+
+    todosBtn.addEventListener('click', () => {
+      document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
+      todosBtn.classList.add('active');
+      exibirProdutos(selecionados);
+    });
+
+   function exibirProdutos(lista) {
+  productList.innerHTML = '';
+
+  if (lista.length === 0) {
+    mensagemNenhumProduto.style.display = 'block';
+    return;
+  } else {
+    mensagemNenhumProduto.style.display = 'none';
+  }
+
+  lista.forEach(prod => {
+    const divProduto = document.createElement('div');
+    divProduto.className = 'produto';
+
+    const divProdutoLinha = document.createElement('div');
+    divProdutoLinha.className = 'produto-linha';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'check-produto';
+    checkbox.checked = selecionados.some(p => p.nome === prod.nome);
+    checkbox.addEventListener('change', () => alternarProduto(prod.nome));
+
+    const inputQuantidade = document.createElement('input');
+    inputQuantidade.type = 'number';
+    inputQuantidade.className = 'quantidade';
+    inputQuantidade.min = 1;
+    inputQuantidade.value = selecionados.find(p => p.nome === prod.nome)?.quantidade || 1;
+
+    // 🔥 Aqui adiciona o evento para atualizar a quantidade em tempo real:
+    inputQuantidade.addEventListener('input', () => {
+      const produtoSelecionado = selecionados.find(p => p.nome === prod.nome);
+      if (produtoSelecionado) {
+        produtoSelecionado.quantidade = parseInt(inputQuantidade.value) || 1;
+        atualizarResumo();
+      }
+    });
+
+    const labelNome = document.createElement('label');
+    labelNome.className = 'nome-produto';
+    labelNome.textContent = prod.nome;
+
+    const spanPreco = document.createElement('span');
+    spanPreco.className = 'preco-produto';
+    spanPreco.setAttribute('data-preco', prod.preco);
+    spanPreco.textContent = `R$ ${parseFloat(prod.preco).toFixed(2)}`;
+
+    divProdutoLinha.appendChild(checkbox);
+    divProdutoLinha.appendChild(inputQuantidade);
+    divProdutoLinha.appendChild(labelNome);
+    divProdutoLinha.appendChild(spanPreco);
+
+    divProduto.appendChild(divProdutoLinha);
+    productList.appendChild(divProduto);
+  });
+}
+
+
+    function alternarProduto(nome) {
+      const index = selecionados.findIndex(p => p.nome === nome);
+      const todosInputs = document.querySelectorAll('.produto-linha');
+
+      const input = Array.from(todosInputs).find(div => {
+        const label = div.querySelector('.nome-produto');
+        return label && label.textContent === nome;
       });
 
-      conteudo.appendChild(divCat);
-    });
-  </script>
+      const inputQuantidade = input?.querySelector('.quantidade');
+      const quantidade = inputQuantidade ? parseInt(inputQuantidade.value) : 1;
+
+      if (index !== -1) {
+        selecionados.splice(index, 1);
+      } else {
+        const prod = produtos.find(p => p.nome === nome);
+        selecionados.push({ ...prod, quantidade });
+      }
+
+      atualizarResumo();
+
+      const btnAtivo = document.querySelector('#filtros button.active');
+      if (btnAtivo === todosBtn) exibirProdutos(selecionados);
+    }
+
+    function atualizarResumo() {
+      let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+      let itens = selecionados.reduce((soma, p) => soma + p.quantidade, 0);
+      resumoPedido.textContent = `Total: R$ ${total.toFixed(2)} – ${itens} itens`;
+    }
+
+    function enviarPedido() {
+      const nome = document.getElementById('nomeCliente').value.trim();
+      if (!nome) return alert('Por favor, informe seu nome!');
+      let endereco = document.getElementById('enderecoCliente').value.trim();
+      let obs = document.getElementById('observacoes').value.trim();
+
+      let msg = `Olá, meu nome é ${nome}%0A`;
+      if (endereco) msg += `Endereço: ${endereco}%0A`;
+      if (obs) msg += `Observações: ${obs}%0A`;
+      msg += `%0AMeu pedido:%0A`;
+
+      selecionados.forEach(p => {
+        msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})%0A`;
+      });
+
+      let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+      msg += `%0ATotal: R$ ${total.toFixed(2)}`;
+
+      const link = `https://wa.me/SEUNUMERO?text=${msg}`;
+      window.open(link, '_blank');
+    }
+
+    exibirProdutos(produtos); // Exibe os produtos de alguma categoria ou tudo inicialmente
+  })
+  .catch(error => console.error('Erro ao carregar dados do JSON:', error));
+
+</script>
+
+
 </body>
 </html>
