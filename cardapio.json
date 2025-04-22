@@ -1,0 +1,35 @@
+{
+    "categorias": [
+        "salgadas",
+        "Doces",
+        "Especiais",
+        "Combo"
+    ],
+    "produtos": [
+        {
+            "nome": "Carne",
+            "preco": "3",
+            "categoria": "salgadas"
+        },
+        {
+            "nome": "Carne, queijo",
+            "preco": "5",
+            "categoria": "salgadas"
+        },
+        {
+            "nome": "Carne, Bacon queijo",
+            "preco": "5",
+            "categoria": "salgadas"
+        },
+        {
+            "nome": "15 esfihas carne",
+            "preco": "5",
+            "categoria": "Combo"
+        }
+    ],
+    "header": {
+        "nome": "delysfiharia",
+        "imagem": "https:\/\/www.estadao.com.br\/resizer\/v2\/DJIDV2SGYBN6DHNJMG64RJOIEE.jpg?quality=80&auth=59c06079f4d2bfc20f4cf6331fec5526ace076276873c8edc12d12c95513e1eb&width=720&height=503&focal=0,0"
+    },
+    "textoBotao": "Meu Pedido"
+}
