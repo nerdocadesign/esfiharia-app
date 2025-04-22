@@ -1,0 +1,279 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f2f6fc;
+  padding: 20px;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  overflow-y: scroll; /* <- Isso ajuda a manter a largura sempre igual */
+}
+
+.container {
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+}
+h2 {
+  color: #1a1a1a;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.top-info, .produto, .filtros {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 12px 16px;
+  margin-bottom: 3px;
+}
+
+.top-info input,
+.top-info textarea {
+  width: 100%;
+  margin-bottom: 3px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box; /* importante para funcionar bem */
+}
+
+
+.linha-inputs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.linha-inputs input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+}
+
+input[type="text"], textarea {
+  width: 100%;
+  padding: 5px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 15px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.produto-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.produto input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+.produto input[type="number"] {
+  width: 50px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.produto label {
+  font-weight: 600;
+  flex: 1;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #555;
+  cursor: pointer;
+  transform: rotate(0deg);
+  transition: transform 0.3s ease;
+}
+
+.toggle-btn.ativo {
+  transform: rotate(180deg);
+}
+
+.descricao {
+  font-size: 13px;
+  color: #666;
+  margin-top: 6px;
+  display: none;
+}
+
+.filtros {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filtros button {
+  flex: 1;
+  background-color: #e0e0e0;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.filtros button {
+  min-width: 80px;
+  white-space: nowrap;
+}
+
+.filtros button.ativo {
+  background-color: #7c2c8f;
+  color: white;
+}
+
+.filtros button.active {
+    background-color: #7c2c8f;
+    color: white;
+}
+
+button.enviar {
+  background-color: #25d366;
+  color: white;
+  font-weight: bold;
+  border: none;
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+button.enviar:hover {
+  background-color: #1ebe5d;
+}
+
+button.limpar {
+  background-color: #7c2c8f;
+  color: white;
+  margin-top: 6px;
+}
+
+.resumo {
+  background-color: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  position: sticky;
+  bottom: 0;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.linha-inputs input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+}
+.resumo-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.resumo {
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+button.finalizar {
+  background-color: #7c2c8f;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button.finalizar:hover {
+  background-color: #1ebe5d;
+}
+
+
+.header-esfiharia {
+  width: 100%;
+}
+
+.banner-foto {
+  position: relative;
+  width: 100%;
+  height: 220px; /* altura exata do banner */
+  overflow: hidden;
+}
+
+.foto-esfihas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nome-esfiharia {
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+  color: #7c2c8f;
+  background-color: rgb(255 255 255 / 72%); /* fundo semitransparente */
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  font-family: 'Inter', sans-serif;
+}
+.limpar {
+  display: block; /* Faz o botão ser exibido como um bloco */
+  width: 200px;   /* Define a largura */
+  height: 40px;   /* Define a altura */
+  margin: 20px auto; /* Centraliza o botão horizontalmente */
+  background-color: #f04e23; /* Cor de fundo do botão (pode alterar) */
+  color: white;   /* Cor do texto */
+  font-size: 16px; /* Tamanho da fonte */
+  font-weight: bold;
+  text-align: center; /* Alinha o texto ao centro */
+  border: none;   /* Remove a borda padrão */
+  border-radius: 5px; /* Deixa as bordas arredondadas */
+  cursor: pointer; /* Muda o cursor para indicar que é clicável */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Adiciona uma sombra */
+}
+
+/* Caso você queira alterar o estilo do botão ao passar o mouse */
+.limpar:hover {
+  background-color: #d4431f; /* Altere a cor quando o mouse passar por cima */
+}
+
+.produto input[type="checkbox"],
+.produto input[type="number"] {
+  font-size: 16px; /* ajuda no mobile */
+}
