@@ -1,215 +1,108 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Esfiharia Delivery</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    .active { background-color: #28a745; color: white; }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cardápio</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/@supabase/supabase-js@2.8.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <header class="header-esfiharia">
-      <div class="banner-foto">
-        <img src="" alt="Esfihas deliciosas" class="foto-esfihas">
-        <h1 class="nome-esfiharia"></h1>
-      </div>
-    </header>
 
-    <div class="top-info">
-      <input type="text" id="nomeCliente" placeholder="Seu nome" required />
-      <input type="text" id="enderecoCliente" placeholder="Endereço completo (opcional)" />
-      <textarea id="observacoes" rows="2" placeholder="Observações (ex: sem cebola, bem passado...)"></textarea>
-    </div>
+  <div id="header">
+    <h1 id="nomeEsfiharia"></h1>
+    <img id="imagemHeader" alt="Imagem da Esfiharia" />
+    <button id="btnPedido"></button>
+  </div>
 
-    <div id="filtros" class="filtros">
-      <button id="todosBtn" class="active">Meu Pedido</button>
-    </div>
+  <div id="categorias">
+    <h2>Categorias</h2>
+    <div id="listaCategorias"></div>
+  </div>
 
-    <div class="product-list" id="productList"></div>
-
-    <div id="mensagemNenhumProduto" style="display:none; text-align:center; padding:20px; color:#888; font-style:italic;">
-      Nenhum produto selecionado ainda.
-    </div>
-
-    <div class="resumo-container">
-      <div class="resumo" id="resumoPedido">Total: R$0.00 – 0 itens</div>
-      <button class="finalizar" onclick="enviarPedido()">Enviar Pedido</button>
-    </div>
+  <div id="produtos">
+    <h2>Produtos</h2>
+    <table id="listaProdutos">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Preço</th>
+          <th>Categoria</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <script>
-    const supabaseUrl = 'https://ajuzonfhftbknlmzqygw.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdXpvbmZoZnRia25sbXpxeWd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzgwNzYsImV4cCI6MjA2MTAxNDA3Nn0.E_DiHTcVkcafm4tgQfm1bvCYwNEPHb6kxDHpuKqki2w'; // Substitua pela chave ANON que você encontra no Supabase → Project Settings → API
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    window.onload = () => {
+      // Inicialize o Supabase
+      const supabase = createClient('https://ajuzonfhftbknlmzqygw.supabase.co', 'sua-chave-api');
 
-    supabase
-      .from('cardapio')
-      .select('*')
-      .eq('id', 1)
-      .single()
-      .then(({ data, error }) => {
+      let categorias = [];
+      let produtos = [];
+      let header = {};
+      let textoBotao = 'Meu Pedido';
+
+      // Carregar os dados do Supabase
+      async function carregarDados() {
+        const { data, error } = await supabase
+          .from('cardapio')
+          .select()
+          .eq('id', 1)
+          .single();
+
         if (error) {
-          console.error('Erro ao buscar cardápio:', error);
+          console.error('Erro ao carregar dados:', error.message);
+          alert('Erro ao carregar os dados. Tente novamente mais tarde.');
           return;
         }
 
-        const categorias = typeof data.categorias === 'string' ? JSON.parse(data.categorias) : data.categorias || [];
-        const produtos = typeof data.produtos === 'string' ? JSON.parse(data.produtos) : data.produtos || [];
-        const header = typeof data.header === 'string' ? JSON.parse(data.header) : data.header || {};
-        const textoBotao = data.textoBotao || 'Meu Pedido';
+        categorias = data.categorias || [];
+        produtos = data.produtos || [];
+        header = data.header || {};
+        textoBotao = data.textoBotao || 'Meu Pedido';
 
-        const nomeElement = document.querySelector('.nome-esfiharia');
-        const imagemElement = document.querySelector('.foto-esfihas');
+        // Preencher os dados do header
+        document.getElementById('nomeEsfiharia').textContent = header.nome || 'Esfiharia';
+        document.getElementById('imagemHeader').src = header.imagem || '';
+        document.getElementById('btnPedido').textContent = textoBotao;
 
-        if (header) {
-          if (nomeElement) nomeElement.textContent = header.nome || 'Esfiharia';
-          if (imagemElement) imagemElement.src = header.imagem || '';
-        }
+        // Atualizar as categorias e produtos
+        atualizarCategorias();
+        atualizarProdutos();
+      }
 
-        const filtros = document.getElementById('filtros');
-        const todosBtn = document.getElementById('todosBtn');
-        const productList = document.getElementById('productList');
-        const resumoPedido = document.getElementById('resumoPedido');
-        const mensagemNenhumProduto = document.getElementById('mensagemNenhumProduto');
-
-        let selecionados = [];
-
-        todosBtn.textContent = textoBotao;
-
-        categorias.forEach(cat => {
-          const btn = document.createElement('button');
-          btn.textContent = cat;
-          btn.addEventListener('click', () => filtrarPorCategoria(cat, btn));
-          filtros.appendChild(btn);
+      // Atualizar lista de categorias
+      function atualizarCategorias() {
+        const lista = document.getElementById('listaCategorias');
+        lista.innerHTML = '';
+        categorias.forEach((cat) => {
+          const div = document.createElement('div');
+          div.textContent = cat;
+          lista.appendChild(div);
         });
+      }
 
-        function filtrarPorCategoria(categoria, btnClicado) {
-          document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
-          btnClicado.classList.add('active');
-          exibirProdutos(produtos.filter(p => p.categoria === categoria));
-        }
-
-        todosBtn.addEventListener('click', () => {
-          document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
-          todosBtn.classList.add('active');
-          exibirProdutos(selecionados);
+      // Atualizar lista de produtos
+      function atualizarProdutos() {
+        const tbody = document.getElementById('listaProdutos').getElementsByTagName('tbody')[0];
+        tbody.innerHTML = '';
+        produtos.forEach((p) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${p.nome}</td>
+            <td>R$ ${parseFloat(p.preco).toFixed(2)}</td>
+            <td>${p.categoria}</td>
+          `;
+          tbody.appendChild(tr);
         });
+      }
 
-        function exibirProdutos(lista) {
-          productList.innerHTML = '';
-
-          if (lista.length === 0) {
-            mensagemNenhumProduto.style.display = 'block';
-            return;
-          } else {
-            mensagemNenhumProduto.style.display = 'none';
-          }
-
-          lista.forEach(prod => {
-            const divProduto = document.createElement('div');
-            divProduto.className = 'produto';
-
-            const divProdutoLinha = document.createElement('div');
-            divProdutoLinha.className = 'produto-linha';
-
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'check-produto';
-            checkbox.checked = selecionados.some(p => p.nome === prod.nome);
-            checkbox.addEventListener('change', () => alternarProduto(prod.nome));
-
-            const inputQuantidade = document.createElement('input');
-            inputQuantidade.type = 'number';
-            inputQuantidade.className = 'quantidade';
-            inputQuantidade.min = 1;
-            inputQuantidade.value = selecionados.find(p => p.nome === prod.nome)?.quantidade || 1;
-
-            inputQuantidade.addEventListener('input', () => {
-              const produtoSelecionado = selecionados.find(p => p.nome === prod.nome);
-              if (produtoSelecionado) {
-                produtoSelecionado.quantidade = parseInt(inputQuantidade.value) || 1;
-                atualizarResumo();
-              }
-            });
-
-            const labelNome = document.createElement('label');
-            labelNome.className = 'nome-produto';
-            labelNome.textContent = prod.nome;
-
-            const spanPreco = document.createElement('span');
-            spanPreco.className = 'preco-produto';
-            spanPreco.setAttribute('data-preco', prod.preco);
-            spanPreco.textContent = `R$ ${parseFloat(prod.preco).toFixed(2)}`;
-
-            divProdutoLinha.appendChild(checkbox);
-            divProdutoLinha.appendChild(inputQuantidade);
-            divProdutoLinha.appendChild(labelNome);
-            divProdutoLinha.appendChild(spanPreco);
-
-            divProduto.appendChild(divProdutoLinha);
-            productList.appendChild(divProduto);
-          });
-        }
-
-        function alternarProduto(nome) {
-          const index = selecionados.findIndex(p => p.nome === nome);
-          const todosInputs = document.querySelectorAll('.produto-linha');
-
-          const input = Array.from(todosInputs).find(div => {
-            const label = div.querySelector('.nome-produto');
-            return label && label.textContent === nome;
-          });
-
-          const inputQuantidade = input?.querySelector('.quantidade');
-          const quantidade = inputQuantidade ? parseInt(inputQuantidade.value) : 1;
-
-          if (index !== -1) {
-            selecionados.splice(index, 1);
-          } else {
-            const prod = produtos.find(p => p.nome === nome);
-            selecionados.push({ ...prod, quantidade });
-          }
-
-          atualizarResumo();
-
-          const btnAtivo = document.querySelector('#filtros button.active');
-          if (btnAtivo === todosBtn) exibirProdutos(selecionados);
-        }
-
-        function atualizarResumo() {
-          let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
-          let itens = selecionados.reduce((soma, p) => soma + p.quantidade, 0);
-          resumoPedido.textContent = `Total: R$ ${total.toFixed(2)} – ${itens} itens`;
-        }
-
-        function enviarPedido() {
-          const nome = document.getElementById('nomeCliente').value.trim();
-          if (!nome) return alert('Por favor, informe seu nome!');
-          let endereco = document.getElementById('enderecoCliente').value.trim();
-          let obs = document.getElementById('observacoes').value.trim();
-
-          let msg = `Olá, meu nome é ${nome}%0A`;
-          if (endereco) msg += `Endereço: ${endereco}%0A`;
-          if (obs) msg += `Observações: ${obs}%0A`;
-          msg += `%0AMeu pedido:%0A`;
-
-          selecionados.forEach(p => {
-            msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})%0A`;
-          });
-
-          let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
-          msg += `%0ATotal: R$ ${total.toFixed(2)}`;
-
-          const link = `https://wa.me/SEUNUMERO?text=${msg}`;
-          window.open(link, '_blank');
-        }
-
-        exibirProdutos(produtos);
-      })
-      .catch(error => console.error('Erro ao carregar dados do Supabase:', error));
+      // Carregar os dados assim que a página for carregada
+      carregarDados();
+    };
   </script>
 </body>
 </html>
+
