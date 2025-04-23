@@ -182,17 +182,18 @@
     </div>
   </div>
 <script src="https://unpkg.com/@supabase/supabase-js@2.8.0/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2.8.0/dist/umd/supabase.min.js"></script>
 
 <script>
   window.onload = () => {
-    // Verifica se a biblioteca foi carregada corretamente
-    if (typeof supabase === 'undefined') {
-      console.error("Supabase library não foi carregada corretamente!");
+    // Verifique se a biblioteca Supabase foi carregada corretamente
+    if (typeof window.supabase === 'undefined') {
+      console.error("A biblioteca Supabase não foi carregada corretamente.");
       return;
     }
 
-    // Criando o cliente do Supabase corretamente
-    const supabase = supabase.createClient(
+    // Agora podemos inicializar o cliente Supabase
+    const supabase = window.supabase.createClient(
       'https://ajuzonfhftbknlmzqygw.supabase.co',
       'velhasvirgens'
     );
