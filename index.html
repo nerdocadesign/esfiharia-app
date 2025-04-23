@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Esfiharia Delivery</title>
-  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     .active { background-color: #28a745; color: white; }
   </style>
@@ -41,13 +41,25 @@
   </div>
 
   <script>
-    fetch('get-cardapio.php')
-      .then(response => response.json())
-      .then(data => {
-        const categorias = typeof data.categorias === 'string' ? JSON.parse(data.categorias) : [];
-        const produtos = typeof data.produtos === 'string' ? JSON.parse(data.produtos) : [];
+    const supabaseUrl = 'https://ajuzonfhftbknlmzqygw.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdXpvbmZoZnRia25sbXpxeWd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzgwNzYsImV4cCI6MjA2MTAxNDA3Nn0.E_DiHTcVkcafm4tgQfm1bvCYwNEPHb6kxDHpuKqki2w'; // Substitua pela chave ANON que você encontra no Supabase → Project Settings → API
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    supabase
+      .from('cardapio')
+      .select('*')
+      .eq('id', 1)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Erro ao buscar cardápio:', error);
+          return;
+        }
+
+        const categorias = typeof data.categorias === 'string' ? JSON.parse(data.categorias) : data.categorias || [];
+        const produtos = typeof data.produtos === 'string' ? JSON.parse(data.produtos) : data.produtos || [];
+        const header = typeof data.header === 'string' ? JSON.parse(data.header) : data.header || {};
         const textoBotao = data.textoBotao || 'Meu Pedido';
-        const header = typeof data.header === 'string' ? JSON.parse(data.header) : {};
 
         const nomeElement = document.querySelector('.nome-esfiharia');
         const imagemElement = document.querySelector('.foto-esfihas');
@@ -197,7 +209,7 @@
 
         exibirProdutos(produtos);
       })
-      .catch(error => console.error('Erro ao carregar dados do JSON:', error));
+      .catch(error => console.error('Erro ao carregar dados do Supabase:', error));
   </script>
 </body>
 </html>
