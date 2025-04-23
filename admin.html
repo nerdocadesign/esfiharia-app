@@ -183,7 +183,6 @@
       <button class="btn" onclick="salvarTextoBotao()">Salvar Texto</button>
     </div>
   </div>
-
 <script>
   window.onload = () => {
     // Verifique se a biblioteca Supabase foi carregada corretamente
@@ -201,7 +200,7 @@
     let categorias = [];
     let produtos = [];
     let header = {};
-    let textoBotao = data.textobotao || 'Meu Pedido'; // Correção feita
+    let textoBotao = 'Meu Pedido';  // Definindo o texto padrão aqui
 
     // Função para carregar os dados do banco
     async function carregarDados() {
@@ -217,15 +216,18 @@
         return;
       }
 
+      // Agora que os dados foram carregados, podemos atualizar as variáveis
       categorias = data.categorias || [];
       produtos = data.produtos || [];
       header = data.header || {};
-      textoBotao = data.textoBotao || 'Meu Pedido';
+      textoBotao = data.textobotao || 'Meu Pedido';  // Atribuindo o valor correto à variável
 
+      // Atualizar o HTML com os dados carregados
       document.getElementById('inputNomeEsfiharia').value = header.nome || '';
       document.getElementById('inputImagemHeader').value = header.imagem || '';
       document.getElementById('inputTextoBotao').value = textoBotao;
 
+      // Atualizar as categorias e os produtos na interface
       atualizarCategorias();
       atualizarProdutos();
     }
@@ -273,18 +275,17 @@
 
     // Função para salvar dados no banco de dados
     async function salvarDados() {
-  const { error } = await supabase
-    .from('cardapio')
-    .upsert([{ id: 1, categorias, produtos, header, textobotao: textoBotao }]);
+      const { error } = await supabase
+        .from('cardapio')
+        .upsert([{ id: 1, categorias, produtos, header, textobotao: textoBotao }]);
 
-  if (error) {
-    console.error('Erro ao salvar dados:', error.message);
-    alert('Erro ao salvar os dados. Tente novamente mais tarde.');
-  } else {
-    alert('Alterações salvas com sucesso!');
-  }
-}
-
+      if (error) {
+        console.error('Erro ao salvar dados:', error.message);
+        alert('Erro ao salvar os dados. Tente novamente mais tarde.');
+      } else {
+        alert('Alterações salvas com sucesso!');
+      }
+    }
 
     // Função para adicionar uma nova categoria
     function adicionarCategoria() {
