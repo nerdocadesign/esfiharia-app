@@ -1,108 +1,217 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cardápio</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Esfiharia Delivery</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/@supabase/supabase-js@2.8.0/dist/umd/supabase.min.js"></script>
+  <style>
+    .active { background-color: #28a745; color: white; }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <header class="header-esfiharia">
+      <div class="banner-foto">
+        <img src="" alt="Esfihas deliciosas" class="foto-esfihas">
+        <h1 class="nome-esfiharia"></h1>
+      </div>
+    </header>
 
-  <div id="header">
-    <h1 id="nomeEsfiharia"></h1>
-    <img id="imagemHeader" alt="Imagem da Esfiharia" />
-    <button id="btnPedido"></button>
+    <div class="top-info">
+      <input type="text" id="nomeCliente" placeholder="Seu nome" required />
+      <input type="text" id="enderecoCliente" placeholder="Endereço completo (opcional)" />
+      <textarea id="observacoes" rows="2" placeholder="Observações (ex: sem cebola, bem passado...)"></textarea>
+    </div>
+
+    <div id="filtros" class="filtros">
+      <button id="todosBtn" class="active">Meu Pedido</button>
+    </div>
+
+    <div class="product-list" id="productList"></div>
+
+    <div id="mensagemNenhumProduto" style="display:none; text-align:center; padding:20px; color:#888; font-style:italic;">
+      Nenhum produto selecionado ainda.
+    </div>
+
+    <div class="resumo-container">
+      <div class="resumo" id="resumoPedido">Total: R$0.00 – 0 itens</div>
+      <button class="finalizar" onclick="enviarPedido()">Enviar Pedido</button>
+    </div>
   </div>
 
-  <div id="categorias">
-    <h2>Categorias</h2>
-    <div id="listaCategorias"></div>
-  </div>
+<script>
+  const supabase = supabase.createClient(
+    'https://ajuzonfhftbknlmzqygw.supabase.co',
+    'SUA-CHAVE-API'
+  );
 
-  <div id="produtos">
-    <h2>Produtos</h2>
-    <table id="listaProdutos">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Preço</th>
-          <th>Categoria</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  let categorias = [];
+  let produtos = [];
+  let selecionados = [];
+  let textoBotao = 'Meu Pedido';
 
-  <script>
-    window.onload = () => {
-      // Inicialize o Supabase
-      const supabase = createClient('https://ajuzonfhftbknlmzqygw.supabase.co', 'sua-chave-api');
+  const nomeElement = document.querySelector('.nome-esfiharia');
+  const imagemElement = document.querySelector('.foto-esfihas');
+  const filtros = document.getElementById('filtros');
+  const todosBtn = document.getElementById('todosBtn');
+  const productList = document.getElementById('productList');
+  const resumoPedido = document.getElementById('resumoPedido');
+  const mensagemNenhumProduto = document.getElementById('mensagemNenhumProduto');
 
-      let categorias = [];
-      let produtos = [];
-      let header = {};
-      let textoBotao = 'Meu Pedido';
+  async function carregarDados() {
+    const { data, error } = await supabase
+      .from('cardapio')
+      .select()
+      .eq('id', 1)
+      .single();
 
-      // Carregar os dados do Supabase
-      async function carregarDados() {
-        const { data, error } = await supabase
-          .from('cardapio')
-          .select()
-          .eq('id', 1)
-          .single();
+    if (error) {
+      console.error('Erro ao carregar dados do Supabase:', error);
+      return;
+    }
 
-        if (error) {
-          console.error('Erro ao carregar dados:', error.message);
-          alert('Erro ao carregar os dados. Tente novamente mais tarde.');
-          return;
+    categorias = data.categorias || [];
+    produtos = data.produtos || [];
+    textoBotao = data.textoBotao || 'Meu Pedido';
+
+    if (data.header) {
+      nomeElement.textContent = data.header.nome || 'Esfiharia';
+      imagemElement.src = data.header.imagem || '';
+    }
+
+    todosBtn.textContent = textoBotao;
+
+    categorias.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.textContent = cat;
+      btn.addEventListener('click', () => filtrarPorCategoria(cat, btn));
+      filtros.appendChild(btn);
+    });
+
+    todosBtn.addEventListener('click', () => {
+      document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
+      todosBtn.classList.add('active');
+      exibirProdutos(selecionados);
+    });
+
+    exibirProdutos(produtos); // mostra tudo inicialmente
+  }
+
+  function filtrarPorCategoria(categoria, btnClicado) {
+    document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
+    btnClicado.classList.add('active');
+    exibirProdutos(produtos.filter(p => p.categoria === categoria));
+  }
+
+  function exibirProdutos(lista) {
+    productList.innerHTML = '';
+
+    if (lista.length === 0) {
+      mensagemNenhumProduto.style.display = 'block';
+      return;
+    } else {
+      mensagemNenhumProduto.style.display = 'none';
+    }
+
+    lista.forEach(prod => {
+      const divProduto = document.createElement('div');
+      divProduto.className = 'produto';
+
+      const divProdutoLinha = document.createElement('div');
+      divProdutoLinha.className = 'produto-linha';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'check-produto';
+      checkbox.checked = selecionados.some(p => p.nome === prod.nome);
+      checkbox.addEventListener('change', () => alternarProduto(prod.nome));
+
+      const inputQuantidade = document.createElement('input');
+      inputQuantidade.type = 'number';
+      inputQuantidade.className = 'quantidade';
+      inputQuantidade.min = 1;
+      inputQuantidade.value = selecionados.find(p => p.nome === prod.nome)?.quantidade || 1;
+
+      inputQuantidade.addEventListener('input', () => {
+        const produtoSelecionado = selecionados.find(p => p.nome === prod.nome);
+        if (produtoSelecionado) {
+          produtoSelecionado.quantidade = parseInt(inputQuantidade.value) || 1;
+          atualizarResumo();
         }
+      });
 
-        categorias = data.categorias || [];
-        produtos = data.produtos || [];
-        header = data.header || {};
-        textoBotao = data.textoBotao || 'Meu Pedido';
+      const labelNome = document.createElement('label');
+      labelNome.className = 'nome-produto';
+      labelNome.textContent = prod.nome;
 
-        // Preencher os dados do header
-        document.getElementById('nomeEsfiharia').textContent = header.nome || 'Esfiharia';
-        document.getElementById('imagemHeader').src = header.imagem || '';
-        document.getElementById('btnPedido').textContent = textoBotao;
+      const spanPreco = document.createElement('span');
+      spanPreco.className = 'preco-produto';
+      spanPreco.setAttribute('data-preco', prod.preco);
+      spanPreco.textContent = `R$ ${parseFloat(prod.preco).toFixed(2)}`;
 
-        // Atualizar as categorias e produtos
-        atualizarCategorias();
-        atualizarProdutos();
-      }
+      divProdutoLinha.appendChild(checkbox);
+      divProdutoLinha.appendChild(inputQuantidade);
+      divProdutoLinha.appendChild(labelNome);
+      divProdutoLinha.appendChild(spanPreco);
 
-      // Atualizar lista de categorias
-      function atualizarCategorias() {
-        const lista = document.getElementById('listaCategorias');
-        lista.innerHTML = '';
-        categorias.forEach((cat) => {
-          const div = document.createElement('div');
-          div.textContent = cat;
-          lista.appendChild(div);
-        });
-      }
+      divProduto.appendChild(divProdutoLinha);
+      productList.appendChild(divProduto);
+    });
+  }
 
-      // Atualizar lista de produtos
-      function atualizarProdutos() {
-        const tbody = document.getElementById('listaProdutos').getElementsByTagName('tbody')[0];
-        tbody.innerHTML = '';
-        produtos.forEach((p) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${p.nome}</td>
-            <td>R$ ${parseFloat(p.preco).toFixed(2)}</td>
-            <td>${p.categoria}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-      }
+  function alternarProduto(nome) {
+    const index = selecionados.findIndex(p => p.nome === nome);
+    const todosInputs = document.querySelectorAll('.produto-linha');
+    const input = Array.from(todosInputs).find(div => div.querySelector('.nome-produto')?.textContent === nome);
+    const inputQuantidade = input?.querySelector('.quantidade');
+    const quantidade = inputQuantidade ? parseInt(inputQuantidade.value) : 1;
 
-      // Carregar os dados assim que a página for carregada
-      carregarDados();
-    };
-  </script>
+    if (index !== -1) {
+      selecionados.splice(index, 1);
+    } else {
+      const prod = produtos.find(p => p.nome === nome);
+      selecionados.push({ ...prod, quantidade });
+    }
+
+    atualizarResumo();
+
+    const btnAtivo = document.querySelector('#filtros button.active');
+    if (btnAtivo === todosBtn) exibirProdutos(selecionados);
+  }
+
+  function atualizarResumo() {
+    let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+    let itens = selecionados.reduce((soma, p) => soma + p.quantidade, 0);
+    resumoPedido.textContent = `Total: R$ ${total.toFixed(2)} – ${itens} itens`;
+  }
+
+  function enviarPedido() {
+    const nome = document.getElementById('nomeCliente').value.trim();
+    if (!nome) return alert('Por favor, informe seu nome!');
+    let endereco = document.getElementById('enderecoCliente').value.trim();
+    let obs = document.getElementById('observacoes').value.trim();
+
+    let msg = `Olá, meu nome é ${nome}%0A`;
+    if (endereco) msg += `Endereço: ${endereco}%0A`;
+    if (obs) msg += `Observações: ${obs}%0A`;
+    msg += `%0AMeu pedido:%0A`;
+
+    selecionados.forEach(p => {
+      msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})%0A`;
+    });
+
+    let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+    msg += `%0ATotal: R$ ${total.toFixed(2)}`;
+
+    const link = `https://wa.me/SEUNUMERO?text=${msg}`;
+    window.open(link, '_blank');
+  }
+
+  window.onload = carregarDados;
+</script>
 </body>
 </html>
+
 
