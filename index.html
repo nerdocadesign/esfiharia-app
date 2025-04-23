@@ -1,216 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Esfiharia Delivery</title>
-  <link rel="stylesheet" href="style.css">
   <style>
-    .active { background-color: #28a745; color: white; }
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header class="header-esfiharia">
-      <div class="banner-foto">
-        <img src="" alt="Esfihas deliciosas" class="foto-esfihas">
-        <h1 class="nome-esfiharia"></h1>
-      </div>
-    </header>
-
-    <div class="top-info">
-      <input type="text" id="nomeCliente" placeholder="Seu nome" required />
-      <input type="text" id="enderecoCliente" placeholder="Endereço completo (opcional)" />
-      <textarea id="observacoes" rows="2" placeholder="Observações (ex: sem cebola, bem passado...)"></textarea>
-    </div>
-
-    <div id="filtros" class="filtros">
-      <button id="todosBtn" class="active">Meu Pedido</button>
-      <!-- Botões de categoria serão adicionados dinamicamente -->
-    </div>
-
-    <div class="product-list" id="productList"></div>
-
-    <div id="mensagemNenhumProduto" style="display:none; text-align:center; padding:20px; color:#888; font-style:italic;">
-      Nenhum produto selecionado ainda.
-    </div>
-
-    <div class="resumo-container">
-      <div class="resumo" id="resumoPedido">Total: R$0.00 – 0 itens</div>
-      <button class="finalizar" onclick="enviarPedido()">Enviar Pedido</button>
-    </div>
-  </div>
-
- <script>
-   let selecionados = []; // Agora está no escopo global! 
-
-  // Função 'enviarPedido' dentro do contexto correto
-      function enviarPedido() {
-        const nome = document.getElementById('nomeCliente').value.trim();
-        if (!nome) return alert('Por favor, informe seu nome!');
-        const endereco = document.getElementById('enderecoCliente').value.trim();
-        const obs = document.getElementById('observacoes').value.trim();
-
-        let msg = `Pedido de Esfiharia – Cliente: ${nome}%0A`;
-
-        if (endereco) msg += `Endereço: ${endereco}%0A`;
-        if (obs) msg += `Observações: ${obs}%0A`;
-
-        msg += `%0AItens selecionados:%0A`;
-
-        selecionados.forEach(p => {
-          msg += `* ${p.nome} - ${p.quantidade} un - R$ ${(p.preco * p.quantidade).toFixed(2)}%0A`;
-        });
-
-        const total = selecionados.reduce((soma, p) => soma + (p.preco * p.quantidade), 0);
-        msg += `%0A💰 Total: R$ ${total.toFixed(2)}`;
-
-        const link = `https://wa.me/5514982006515?text=${msg}`;
-        window.open(link, '_blank');
-      }
-  fetch('https://esfiharia-app.vercel.app/api/cardapio')
-    .then(response => response.json())
-    .then(data => {
-      const categorias = data.categorias || [];
-      const produtos = data.produtos || [];
-      const textoBotao = data.textoBotao || 'Meu Pedido';
-
-      const nomeElement = document.querySelector('.nome-esfiharia');
-      const imagemElement = document.querySelector('.foto-esfihas');
-
-      if (data.header) {
-        nomeElement.textContent = data.header.nome || 'Esfiharia';
-        imagemElement.src = data.header.imagem || '';
-      }
-
-      const filtros = document.getElementById('filtros');
-      const todosBtn = document.getElementById('todosBtn');
-      const productList = document.getElementById('productList');
-      const resumoPedido = document.getElementById('resumoPedido');
-      const mensagemNenhumProduto = document.getElementById('mensagemNenhumProduto');
-
-
-      todosBtn.textContent = textoBotao;
-
-      categorias.forEach(cat => {
-        const btn = document.createElement('button');
-        btn.textContent = cat;
-        btn.addEventListener('click', () => filtrarPorCategoria(cat, btn));
-        filtros.appendChild(btn);
-      });
-
-      function aplicarFiltroTodos() {
-        document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
-        todosBtn.classList.add('active');
-
-        if (selecionados.length === 0) {
-          mensagemNenhumProduto.style.display = 'block';
-          productList.innerHTML = '';
-        } else {
-          mensagemNenhumProduto.style.display = 'none';
-          exibirProdutos(selecionados);
-        }
-      }
-
-      todosBtn.addEventListener('click', aplicarFiltroTodos);
-
-      function filtrarPorCategoria(categoria, btnClicado) {
-        document.querySelectorAll('#filtros button').forEach(btn => btn.classList.remove('active'));
-        btnClicado.classList.add('active');
-        exibirProdutos(produtos.filter(p => p.categoria === categoria));
-      }
-
-      function exibirProdutos(lista) {
-        productList.innerHTML = '';
-
-        if (lista.length === 0) {
-          mensagemNenhumProduto.style.display = 'block';
-          return;
-        } else {
-          mensagemNenhumProduto.style.display = 'none';
-        }
-
-        lista.forEach(prod => {
-          const divProduto = document.createElement('div');
-          divProduto.className = 'produto';
-
-          const divProdutoLinha = document.createElement('div');
-          divProdutoLinha.className = 'produto-linha';
-
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.className = 'check-produto';
-          checkbox.checked = selecionados.some(p => p.nome === prod.nome);
-          checkbox.addEventListener('change', () => alternarProduto(prod.nome));
-
-          const inputQuantidade = document.createElement('input');
-          inputQuantidade.type = 'number';
-          inputQuantidade.className = 'quantidade';
-          inputQuantidade.min = 1;
-          inputQuantidade.value = selecionados.find(p => p.nome === prod.nome)?.quantidade || 1;
-          inputQuantidade.addEventListener('input', () => {
-            const produtoSelecionado = selecionados.find(p => p.nome === prod.nome);
-            if (produtoSelecionado) {
-              produtoSelecionado.quantidade = parseInt(inputQuantidade.value) || 1;
-              atualizarResumo();
-            }
-          });
-
-          const labelNome = document.createElement('label');
-          labelNome.className = 'nome-produto';
-          labelNome.textContent = prod.nome;
-
-          const spanPreco = document.createElement('span');
-          spanPreco.className = 'preco-produto';
-          spanPreco.setAttribute('data-preco', prod.preco);
-          spanPreco.textContent = `R$ ${parseFloat(prod.preco).toFixed(2)}`;
-
-          divProdutoLinha.appendChild(checkbox);
-          divProdutoLinha.appendChild(inputQuantidade);
-          divProdutoLinha.appendChild(labelNome);
-          divProdutoLinha.appendChild(spanPreco);
-
-          divProduto.appendChild(divProdutoLinha);
-          productList.appendChild(divProduto);
-        });
-      }
-
-      function alternarProduto(nome) {
-        const index = selecionados.findIndex(p => p.nome === nome);
-        const todosInputs = document.querySelectorAll('.produto-linha');
-        const input = Array.from(todosInputs).find(div => {
-          const label = div.querySelector('.nome-produto');
-          return label && label.textContent === nome;
-        });
-
-        const inputQuantidade = input?.querySelector('.quantidade');
-        const quantidade = inputQuantidade ? parseInt(inputQuantidade.value) : 1;
-
-        if (index !== -1) {
-          selecionados.splice(index, 1);
-        } else {
-          const prod = produtos.find(p => p.nome === nome);
-          selecionados.push({ ...prod, quantidade });
-        }
-
-        atualizarResumo();
-
-        const btnAtivo = document.querySelector('#filtros button.active');
-        if (btnAtivo === todosBtn) exibirProdutos(selecionados);
-      }
-
-      function atualizarResumo() {
-        let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
-        let itens = selecionados.reduce((soma, p) => soma + p.quantidade, 0);
-        resumoPedido.textContent = `Total: R$ ${total.toFixed(2)} – ${itens} itens`;
-      }
-
-
-      aplicarFiltroTodos(); // Exibe o filtro "Meu Pedido" corretamente ao carregar
-    })
-    .catch(error => console.error('Erro ao carregar dados do JSON:', error));
-</script>
-
-
+  <iframe src="https://nerdoca.myartsonline.com/index.html" allowfullscreen></iframe>
 </body>
 </html>
