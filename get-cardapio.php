@@ -3,7 +3,7 @@ header('Content-Type: application/json');
 
 // Substitua com sua chave real
 $supabaseUrl = 'https://ajuzonfhftbknlmzqygw.supabase.co';
-$supabaseKey = 'COLE_AQUI_SUA_ANON_KEY';
+$supabaseKey = 'velhasvirgens';
 
 $apiUrl = $supabaseUrl . '/rest/v1/cardapio?id=eq.1';
 
