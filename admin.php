@@ -1,70 +1,69 @@
-<?php
-header('Content-Type: application/json');
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - Esfiharia Delivery</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div>
+    <h1>Admin - Cardápio</h1>
+    <form id="formCardapio">
+      <input type="text" id="nomeEsfiharia" placeholder="Nome da Esfiharia" />
+      <textarea id="categoriasInput" placeholder="Categorias (JSON)" rows="4"></textarea>
+      <textarea id="produtosInput" placeholder="Produtos (JSON)" rows="4"></textarea>
+      <textarea id="headerInput" placeholder="Header (JSON)" rows="4"></textarea>
+      <input type="text" id="textoBotaoInput" placeholder="Texto do botão" />
+      <button type="submit">Salvar</button>
+    </form>
+  </div>
 
-// Definir a URL do Supabase e a chave da API
-$supabaseUrl = 'https://your-project-id.supabase.co'; // Substitua com a URL do seu projeto Supabase
-$supabaseKey = 'your-api-key'; // Substitua com sua chave de API (serviço ou anon)
+  <script>
+    const supabaseUrl = 'https://ajuzonfhftbknlmzqygw.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdXpvbmZoZnRia25sbXpxeWd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzgwNzYsImV4cCI6MjA2MTAxNDA3Nn0.E_DiHTcVkcafm4tgQfm1bvCYwNEPHb6kxDHpuKqki2w'; // Substitua pela chave ANON
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-$apiUrl = $supabaseUrl . '/rest/v1/cardapio?id=eq.1'; // Endereço da API para o seu banco de dados, adaptado para o Supabase
+    // Carregar dados do cardápio
+    supabase
+      .from('cardapio')
+      .select('*')
+      .eq('id', 1)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Erro ao buscar cardápio:', error);
+          return;
+        }
 
-// Função para fazer requisições ao Supabase
-function supabaseRequest($method, $url, $data = null) {
-    global $supabaseKey;
+        document.getElementById('nomeEsfiharia').value = data.header.nome || '';
+        document.getElementById('categoriasInput').value = JSON.stringify(data.categorias, null, 2);
+        document.getElementById('produtosInput').value = JSON.stringify(data.produtos, null, 2);
+        document.getElementById('headerInput').value = JSON.stringify(data.header, null, 2);
+        document.getElementById('textoBotaoInput').value = data.textoBotao || '';
+      })
+      .catch(error => console.error('Erro ao carregar dados do Supabase:', error));
 
-    $options = [
-        'http' => [
-            'header'  => "Content-Type: application/json\r\n" .
-                         "apikey: $supabaseKey\r\n",
-            'method'  => $method,
-        ]
-    ];
+    // Salvar dados
+    document.getElementById('formCardapio').addEventListener('submit', async function (e) {
+      e.preventDefault();
 
-    if ($data) {
-        $options['http']['content'] = json_encode($data);
-    }
+      const categorias = JSON.parse(document.getElementById('categoriasInput').value);
+      const produtos = JSON.parse(document.getElementById('produtosInput').value);
+      const header = JSON.parse(document.getElementById('headerInput').value);
+      const textoBotao = document.getElementById('textoBotaoInput').value;
 
-    $context = stream_context_create($options);
-    $response = file_get_contents($url, false, $context);
-    if ($response === FALSE) {
-        return json_encode(['error' => 'Erro ao comunicar com o Supabase']);
-    }
-
-    return $response;
-}
-
-// Se for POST, atualiza os dados no Supabase
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $jsonData = file_get_contents('php://input');
-    $dados = json_decode($jsonData, true);
-
-    // Atualiza o cardápio no Supabase
-    $updateData = [
-        'categorias' => json_encode($dados['categorias']),
-        'produtos' => json_encode($dados['produtos']),
-        'header' => json_encode($dados['header']),
-        'textoBotao' => $dados['textoBotao']
-    ];
-
-    // Requisição PUT para atualizar os dados
-    $response = supabaseRequest('PUT', $apiUrl, $updateData);
-    echo $response;
-    exit;
-}
-
-// Se for GET, retorna os dados do Supabase
-$response = supabaseRequest('GET', $apiUrl);
-$dados = json_decode($response, true);
-
-// Verifica se o dado foi encontrado
-if (count($dados) > 0) {
-    $dados = $dados[0]; // Pega o primeiro registro (no caso, o único)
-    echo json_encode([
-        'categorias' => json_decode($dados['categorias']),
-        'produtos' => json_decode($dados['produtos']),
-        'header' => json_decode($dados['header']),
-        'textoBotao' => $dados['textoBotao']
-    ]);
-} else {
-    echo json_encode(['error' => 'Cardápio não encontrado']);
-}
-?>
+      await supabase
+        .from('cardapio')
+        .update({
+          categorias: JSON.stringify(categorias),
+          produtos: JSON.stringify(produtos),
+          header: JSON.stringify(header),
+          textoBotao: textoBotao
+        })
+        .eq('id', 1);
+      alert('Cardápio atualizado com sucesso!');
+    });
+  </script>
+</body>
+</html>
