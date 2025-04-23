@@ -185,8 +185,14 @@
 
 <script>
   window.onload = () => {
-    // Criando o cliente do Supabase
-    const supabase = window.supabase.createClient(
+    // Verifica se a biblioteca foi carregada corretamente
+    if (typeof supabase === 'undefined') {
+      console.error("Supabase library não foi carregada corretamente!");
+      return;
+    }
+
+    // Criando o cliente do Supabase corretamente
+    const supabase = supabase.createClient(
       'https://ajuzonfhftbknlmzqygw.supabase.co',
       'velhasvirgens'
     );
@@ -356,8 +362,6 @@
     carregarDados();
   };
 </script>
-
-
 
 </body>
 </html>
