@@ -273,17 +273,23 @@
 
     // Função para salvar dados no banco de dados
     async function salvarDados() {
-      const { error } = await supabase
-        .from('cardapio')
-        .upsert([{ id: 1, categorias, produtos, header, textoBotao }]);
+  const { error } = await supabase
+    .from('cardapio')
+    .upsert([{
+      id: 1,
+      categorias,
+      produtos,
+      header,
+      textoBotao // Garanta que esse campo está sendo enviado corretamente
+    }]);
 
-      if (error) {
-        console.error('Erro ao salvar dados:', error.message);
-        alert('Erro ao salvar os dados. Tente novamente mais tarde.');
-      } else {
-        alert('Alterações salvas com sucesso!');
-      }
-    }
+  if (error) {
+    console.error('Erro ao salvar dados:', error.message);
+    alert('Erro ao salvar os dados. Tente novamente mais tarde.');
+  } else {
+    alert('Alterações salvas com sucesso!');
+  }
+}
 
     // Função para adicionar uma nova categoria
     function adicionarCategoria() {
