@@ -185,7 +185,7 @@
     let header = {};
     let textoBotao = '';
 
-    // Carregar dados do banco
+    // Carregar dados do banco (via PHP que interage com Supabase)
     fetch('admin.php')
       .then(res => res.json())
       .then(dados => {
