@@ -181,9 +181,10 @@
       <button class="btn" onclick="salvarTextoBotao()">Salvar Texto</button>
     </div>
   </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.8.0/dist/supabase.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2.8.0/dist/umd/supabase.min.js"></script>
+
 <script>
-  const supabase = window.supabase.createClient('https://ajuzonfhftbknlmzqygw.supabase.co', 'velhasvirgens');
+  const supabase = supabase.createClient('https://ajuzonfhftbknlmzqygw.supabase.co', 'velhasvirgens');
   let categorias = [];
   let produtos = [];
   let header = {};
