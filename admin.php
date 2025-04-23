@@ -1,53 +1,70 @@
 <?php
 header('Content-Type: application/json');
 
-$servername = "fdb1028.awardspace.net";
-$username = "3552835_cardapio";
-$password = "v3lhasvirg3ns";
-$dbname = "3552835_cardapio";
+// Definir a URL do Supabase e a chave da API
+$supabaseUrl = 'https://your-project-id.supabase.co'; // Substitua com a URL do seu projeto Supabase
+$supabaseKey = 'your-api-key'; // Substitua com sua chave de API (serviço ou anon)
 
-// Conectar ao banco
-$conn = new mysqli($servername, $username, $password, $dbname);
+$apiUrl = $supabaseUrl . '/rest/v1/cardapio?id=eq.1'; // Endereço da API para o seu banco de dados, adaptado para o Supabase
 
-// Verificar conexão
-if ($conn->connect_error) {
-    echo json_encode(['error' => 'Erro na conexão com o banco de dados.']);
-    exit;
+// Função para fazer requisições ao Supabase
+function supabaseRequest($method, $url, $data = null) {
+    global $supabaseKey;
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n" .
+                         "apikey: $supabaseKey\r\n",
+            'method'  => $method,
+        ]
+    ];
+
+    if ($data) {
+        $options['http']['content'] = json_encode($data);
+    }
+
+    $context = stream_context_create($options);
+    $response = file_get_contents($url, false, $context);
+    if ($response === FALSE) {
+        return json_encode(['error' => 'Erro ao comunicar com o Supabase']);
+    }
+
+    return $response;
 }
 
-// Se for POST, atualiza os dados
+// Se for POST, atualiza os dados no Supabase
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jsonData = file_get_contents('php://input');
     $dados = json_decode($jsonData, true);
 
-    $sql = "UPDATE cardapio SET categorias = ?, produtos = ?, header = ?, textoBotao = ? WHERE id = 1";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param(
-        "ssss",
-        json_encode($dados['categorias']),
-        json_encode($dados['produtos']),
-        json_encode($dados['header']),
-        $dados['textoBotao']
-    );
-    $stmt->execute();
-    echo json_encode(['success' => true]);
-    $stmt->close();
-    $conn->close();
+    // Atualiza o cardápio no Supabase
+    $updateData = [
+        'categorias' => json_encode($dados['categorias']),
+        'produtos' => json_encode($dados['produtos']),
+        'header' => json_encode($dados['header']),
+        'textoBotao' => $dados['textoBotao']
+    ];
+
+    // Requisição PUT para atualizar os dados
+    $response = supabaseRequest('PUT', $apiUrl, $updateData);
+    echo $response;
     exit;
 }
 
-// Se for GET, retorna os dados
-$sql = "SELECT * FROM cardapio WHERE id = 1";
-$result = $conn->query($sql);
-$row = $result->fetch_assoc();
+// Se for GET, retorna os dados do Supabase
+$response = supabaseRequest('GET', $apiUrl);
+$dados = json_decode($response, true);
 
-$dados = [
-    'categorias' => json_decode($row['categorias']),
-    'produtos' => json_decode($row['produtos']),
-    'header' => json_decode($row['header']),
-    'textoBotao' => $row['textoBotao']
-];
-
-echo json_encode($dados);
-
-$conn->close();
+// Verifica se o dado foi encontrado
+if (count($dados) > 0) {
+    $dados = $dados[0]; // Pega o primeiro registro (no caso, o único)
+    echo json_encode([
+        'categorias' => json_decode($dados['categorias']),
+        'produtos' => json_decode($dados['produtos']),
+        'header' => json_decode($dados['header']),
+        'textoBotao' => $dados['textoBotao']
+    ]);
+} else {
+    echo json_encode(['error' => 'Cardápio não encontrado']);
+}
+?>
