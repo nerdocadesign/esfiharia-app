@@ -3,67 +3,329 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin - Esfiharia Delivery</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Administração Esfiharia Delivery</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilos que você já tinha, você pode manter sem alterações */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+    .titulo {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 24px;
+      color: #333;
+    }
+    h2 {
+      margin-top: 20px;
+      color: #444;
+      font-size: 18px;
+    }
+    .input-field {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      margin: 8px 0;
+    }
+    .input-container {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn,
+    .btn-adicionar-categoria {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .btn:hover,
+    .btn-adicionar-categoria:hover {
+      background-color: #218838;
+    }
+    .btn.remove {
+      background-color: #dc3545;
+    }
+    .btn.remove:hover {
+      background-color: #c82333;
+    }
+    .btn.edit {
+      background-color: #ffc107;
+      color: #333;
+    }
+    .btn.edit:hover {
+      background-color: #e0a800;
+    }
+    .lista {
+      margin-top: 15px;
+    }
+    .item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      margin-bottom: 8px;
+    }
+    .item-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .tabela-wrapper {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+    .tabela-produtos {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .tabela-produtos th,
+    .tabela-produtos td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    .tabela-produtos th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    .tabela-produtos td .btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      margin-right: 4px;
+    }
+    @media (max-width: 500px) {
+      .input-field {
+        font-size: 12px;
+      }
+      .btn,
+      .btn-adicionar-categoria {
+        font-size: 12px;
+      }
+      .tabela-produtos th,
+      .tabela-produtos td {
+        font-size: 12px;
+        padding: 6px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div>
-    <h1>Admin - Cardápio</h1>
-    <form id="formCardapio">
-      <input type="text" id="nomeEsfiharia" placeholder="Nome da Esfiharia" />
-      <textarea id="categoriasInput" placeholder="Categorias (JSON)" rows="4"></textarea>
-      <textarea id="produtosInput" placeholder="Produtos (JSON)" rows="4"></textarea>
-      <textarea id="headerInput" placeholder="Header (JSON)" rows="4"></textarea>
-      <input type="text" id="textoBotaoInput" placeholder="Texto do botão" />
-      <button type="submit">Salvar</button>
-    </form>
+  <div class="container">
+    <h1 class="titulo">Administração Esfiharia Delivery</h1>
+
+    <h2>Editar Informações do Header</h2>
+    <div class="input-container">
+      <input type="text" id="inputNomeEsfiharia" class="input-field" placeholder="Nome da Esfiharia">
+      <input type="text" id="inputImagemHeader" class="input-field" placeholder="URL da imagem do header">
+      <button class="btn-adicionar-categoria" onclick="salvarHeader()">Salvar Header</button>
+    </div>
+
+    <div>
+      <h2>Gerenciar Categorias</h2>
+      <div class="input-container">
+        <input type="text" id="inputCategoria" class="input-field" placeholder="Adicionar nova categoria">
+        <button class="btn btn-adicionar-categoria" onclick="adicionarCategoria()">Adicionar Categoria</button>
+      </div>
+      <div id="listaCategorias" class="lista"></div>
+    </div>
+
+    <div>
+      <h2>Gerenciar Produtos</h2>
+      <input type="text" id="inputProduto" class="input-field" placeholder="Nome do produto">
+      <input type="number" id="inputPreco" class="input-field" placeholder="Preço do produto">
+      <select id="selectCategoriaProduto" class="input-field"></select>
+      <button class="btn" onclick="adicionarProduto()">Adicionar Produto</button>
+
+      <div class="tabela-wrapper">
+        <table class="tabela-produtos">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Preço</th>
+              <th>Categoria</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="listaProdutos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <h2>Editar Texto dos Botões</h2>
+      <input type="text" id="inputTextoBotao" class="input-field" placeholder="Texto do botão 'Meu Pedido'">
+      <button class="btn" onclick="salvarTextoBotao()">Salvar Texto</button>
+    </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.8.0/dist/supabase.min.js"></script>
   <script>
-    const supabaseUrl = 'https://ajuzonfhftbknlmzqygw.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdXpvbmZoZnRia25sbXpxeWd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzgwNzYsImV4cCI6MjA2MTAxNDA3Nn0.E_DiHTcVkcafm4tgQfm1bvCYwNEPHb6kxDHpuKqki2w'; // Substitua pela chave ANON
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient('https://ajuzonfhftbknlmzqygw.supabase.co', 'velhasvirgens');
 
-    // Carregar dados do cardápio
-    supabase
-      .from('cardapio')
-      .select('*')
-      .eq('id', 1)
-      .single()
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('Erro ao buscar cardápio:', error);
-          return;
-        }
+    let categorias = [];
+    let produtos = [];
+    let header = {};
+    let textoBotao = 'Meu Pedido';
 
-        document.getElementById('nomeEsfiharia').value = data.header.nome || '';
-        document.getElementById('categoriasInput').value = JSON.stringify(data.categorias, null, 2);
-        document.getElementById('produtosInput').value = JSON.stringify(data.produtos, null, 2);
-        document.getElementById('headerInput').value = JSON.stringify(data.header, null, 2);
-        document.getElementById('textoBotaoInput').value = data.textoBotao || '';
-      })
-      .catch(error => console.error('Erro ao carregar dados do Supabase:', error));
-
-    // Salvar dados
-    document.getElementById('formCardapio').addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      const categorias = JSON.parse(document.getElementById('categoriasInput').value);
-      const produtos = JSON.parse(document.getElementById('produtosInput').value);
-      const header = JSON.parse(document.getElementById('headerInput').value);
-      const textoBotao = document.getElementById('textoBotaoInput').value;
-
-      await supabase
+    async function carregarDados() {
+      const { data, error } = await supabase
         .from('cardapio')
-        .update({
-          categorias: JSON.stringify(categorias),
-          produtos: JSON.stringify(produtos),
-          header: JSON.stringify(header),
-          textoBotao: textoBotao
-        })
-        .eq('id', 1);
-      alert('Cardápio atualizado com sucesso!');
-    });
+        .select()
+        .eq('id', 1)
+        .single();
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      categorias = data.categorias || [];
+      produtos = data.produtos || [];
+      header = data.header || {};
+      textoBotao = data.textoBotao || 'Meu Pedido';
+
+      document.getElementById('inputNomeEsfiharia').value = header.nome || '';
+      document.getElementById('inputImagemHeader').value = header.imagem || '';
+      document.getElementById('inputTextoBotao').value = textoBotao;
+
+      atualizarCategorias();
+      atualizarProdutos();
+    }
+
+    function atualizarCategorias() {
+      const lista = document.getElementById('listaCategorias');
+      const select = document.getElementById('selectCategoriaProduto');
+      lista.innerHTML = '';
+      select.innerHTML = '<option value="">Selecione uma categoria</option>';
+      categorias.forEach((cat, i) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div>${cat}</div>
+          <div class="item-buttons">
+            <button class="btn remove" onclick="removerCategoria(${i})">Remover</button>
+          </div>`;
+        lista.appendChild(div);
+
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        select.appendChild(option);
+      });
+    }
+
+    function atualizarProdutos() {
+      const tbody = document.getElementById('listaProdutos');
+      tbody.innerHTML = '';
+      produtos.forEach((p, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.nome}</td>
+          <td>R$ ${parseFloat(p.preco).toFixed(2)}</td>
+          <td>${p.categoria}</td>
+          <td>
+            <button class="btn edit" onclick="editarProduto(${i})">Editar</button>
+            <button class="btn remove" onclick="removerProduto(${i})">Remover</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function salvarDados() {
+      const { error } = await supabase
+        .from('cardapio')
+        .upsert([{ id: 1, categorias, produtos, header, textoBotao }]);
+
+      if (error) {
+        console.error(error);
+      } else {
+        alert('Alterações salvas com sucesso!');
+      }
+    }
+
+    function adicionarCategoria() {
+      const input = document.getElementById('inputCategoria');
+      const valor = input.value.trim();
+      if (valor && !categorias.includes(valor)) {
+        categorias.push(valor);
+        input.value = '';
+        atualizarCategorias();
+        salvarDados();
+      }
+    }
+
+    function removerCategoria(i) {
+      categorias.splice(i, 1);
+      produtos = produtos.filter(p => p.categoria !== categorias[i]);
+      atualizarCategorias();
+      atualizarProdutos();
+      salvarDados();
+    }
+
+    function adicionarProduto() {
+      const nome = document.getElementById('inputProduto').value.trim();
+      const preco = document.getElementById('inputPreco').value.trim();
+      const categoria = document.getElementById('selectCategoriaProduto').value;
+      if (nome && preco && categoria) {
+        produtos.push({ nome, preco, categoria });
+        document.getElementById('inputProduto').value = '';
+        document.getElementById('inputPreco').value = '';
+        atualizarProdutos();
+        salvarDados();
+      }
+    }
+
+    function removerProduto(i) {
+      produtos.splice(i, 1);
+      atualizarProdutos();
+      salvarDados();
+    }
+
+    function editarProduto(i) {
+      const p = produtos[i];
+      document.getElementById('inputProduto').value = p.nome;
+      document.getElementById('inputPreco').value = p.preco;
+      document.getElementById('selectCategoriaProduto').value = p.categoria;
+      removerProduto(i);
+    }
+
+    function salvarHeader() {
+      header.nome = document.getElementById('inputNomeEsfiharia').value.trim();
+      header.imagem = document.getElementById('inputImagemHeader').value.trim();
+      salvarDados();
+    }
+
+    function salvarTextoBotao() {
+      textoBotao = document.getElementById('inputTextoBotao').value.trim();
+      salvarDados();
+    }
+
+    // Carregar os dados assim que a página for carregada
+    carregarDados();
   </script>
 </body>
 </html>
