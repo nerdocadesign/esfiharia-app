@@ -182,9 +182,10 @@
     </div>
   </div>
 <script src="https://unpkg.com/@supabase/supabase-js@2.8.0/dist/umd/supabase.min.js"></script>
-
 <script>
-  const supabase = supabase.createClient('https://ajuzonfhftbknlmzqygw.supabase.co', 'velhasvirgens');
+  const supabaseUrl = 'https://ajuzonfhftbknlmzqygw.supabase.co';
+  const supabaseKey = 'velhasvirgens';
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   let categorias = [];
   let produtos = [];
@@ -281,8 +282,9 @@
   }
 
   function removerCategoria(i) {
+    const categoriaRemovida = categorias[i];
     categorias.splice(i, 1);
-    produtos = produtos.filter(p => p.categoria !== categorias[i]);
+    produtos = produtos.filter(p => p.categoria !== categoriaRemovida);
     atualizarCategorias();
     atualizarProdutos();
     salvarDados();
@@ -329,6 +331,7 @@
   // Carregar os dados assim que a página for carregada
   carregarDados();
 </script>
+
 
 </body>
 </html>
