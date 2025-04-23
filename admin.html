@@ -201,7 +201,7 @@
     let categorias = [];
     let produtos = [];
     let header = {};
-    let textoBotao = 'Meu Pedido';
+    let textoBotao = data.textobotao || 'Meu Pedido'; // Correção feita
 
     // Função para carregar os dados do banco
     async function carregarDados() {
@@ -275,13 +275,7 @@
     async function salvarDados() {
   const { error } = await supabase
     .from('cardapio')
-    .upsert([{
-      id: 1,
-      categorias,
-      produtos,
-      header,
-      textoBotao // Garanta que esse campo está sendo enviado corretamente
-    }]);
+    .upsert([{ id: 1, categorias, produtos, header, textobotao: textoBotao }]);
 
   if (error) {
     console.error('Erro ao salvar dados:', error.message);
@@ -290,6 +284,7 @@
     alert('Alterações salvas com sucesso!');
   }
 }
+
 
     // Função para adicionar uma nova categoria
     function adicionarCategoria() {
