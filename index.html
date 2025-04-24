@@ -42,7 +42,7 @@
   </div>
 
 <script>
-  const supabaseClient = Supabase.createClient(
+  const supabaseClient = supabase.createClient(
     'https://ajuzonfhftbknlmzqygw.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqdXpvbmZoZnRia25sbXpxeWd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzgwNzYsImV4cCI6MjA2MTAxNDA3Nn0.E_DiHTcVkcafm4tgQfm1bvCYwNEPHb6kxDHpuKqki2w'
   );
@@ -96,7 +96,7 @@
       exibirProdutos(selecionados);
     });
 
-    exibirProdutos(produtos); // mostra tudo inicialmente
+    exibirProdutos(produtos);
   }
 
   function filtrarPorCategoria(categoria, btnClicado) {
@@ -211,6 +211,7 @@
 
   window.onload = carregarDados;
 </script>
+
 </body>
 </html>
 
