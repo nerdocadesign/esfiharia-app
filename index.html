@@ -191,8 +191,8 @@
   function enviarPedido() {
   const nome = document.getElementById('nomeCliente').value.trim();
   if (!nome) return alert('Por favor, informe seu nome!');
-  const endereco = document.getElementById('enderecoCliente').value.trim();
-  const obs = document.getElementById('observacoes').value.trim();
+  let endereco = document.getElementById('enderecoCliente').value.trim();
+  let obs = document.getElementById('observacoes').value.trim();
 
   let msg = `Olá, meu nome é ${nome}\n`;
   if (endereco) msg += `Endereço: ${endereco}\n`;
@@ -203,15 +203,12 @@
     msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})\n`;
   });
 
-  const total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+  let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
   msg += `\nTotal: R$ ${total.toFixed(2)}`;
 
-  // Codifica a mensagem para URL
-  const encodedMsg = encodeURIComponent(msg);
-  const link = `https://wa.me/5514982006515?text=${encodedMsg}`;
+  const link = `https://wa.me/5514982006515?text=${encodeURIComponent(msg)}`;
   window.open(link, '_blank');
 }
-
 
 carregarDados();
   };
