@@ -42,6 +42,7 @@
   </div>
 
 <script>
+  let selecionados = []; // agora é global e acessível pela função enviarPedido
   function enviarPedido() {
     const nome = document.getElementById('nomeCliente').value.trim();
     if (!nome) return alert('Por favor, informe seu nome!');
