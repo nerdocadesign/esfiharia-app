@@ -44,26 +44,27 @@
 <script>
   let selecionados = []; // agora é global e acessível pela função enviarPedido
   function enviarPedido() {
-    const nome = document.getElementById('nomeCliente').value.trim();
-    if (!nome) return alert('Por favor, informe seu nome!');
-    let endereco = document.getElementById('enderecoCliente').value.trim();
-    let obs = document.getElementById('observacoes').value.trim();
+  const nome = document.getElementById('nomeCliente').value.trim();
+  if (!nome) return alert('Por favor, informe seu nome!');
 
-    let msg = `Olá, meu nome é ${nome}\n`;
-    if (endereco) msg += `Endereço: ${endereco}\n`;
-    if (obs) msg += `Observações: ${obs}\n`;
-    msg += `\nMeu pedido:\n`;
+  let endereco = document.getElementById('enderecoCliente').value.trim();
+  let obs = document.getElementById('observacoes').value.trim();
 
-    selecionados.forEach(p => {
-      msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})\n`;
-    });
+  let msg = `Pedido de Esfiharia – Cliente: ${nome}\n\nItens selecionados:\n`;
 
-    let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
-    msg += `\nTotal: R$ ${total.toFixed(2)}`;
+  selecionados.forEach(p => {
+    msg += `* ${p.nome} - ${p.quantidade} un - R$ ${(p.preco * p.quantidade).toFixed(2)}\n`;
+  });
 
-    const link = `https://wa.me/5514982006515?text=${encodeURIComponent(msg)}`;
-    window.open(link, '_blank');
-  }
+  let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+  msg += `\n💰 Total: R$ ${total.toFixed(2)}\n`;
+
+  if (endereco) msg += `📍 Endereço: ${endereco}\n`;
+  if (obs) msg += `📝 Observações: ${obs}`;
+
+  const link = `https://wa.me/5514982006515?text=${encodeURIComponent(msg)}`;
+  window.open(link, '_blank');
+}
   window.onload = () => {
   const supabaseClient = supabase.createClient(
     'https://ajuzonfhftbknlmzqygw.supabase.co',
