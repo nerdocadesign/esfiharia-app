@@ -42,6 +42,27 @@
   </div>
 
 <script>
+  function enviarPedido() {
+    const nome = document.getElementById('nomeCliente').value.trim();
+    if (!nome) return alert('Por favor, informe seu nome!');
+    let endereco = document.getElementById('enderecoCliente').value.trim();
+    let obs = document.getElementById('observacoes').value.trim();
+
+    let msg = `Olá, meu nome é ${nome}\n`;
+    if (endereco) msg += `Endereço: ${endereco}\n`;
+    if (obs) msg += `Observações: ${obs}\n`;
+    msg += `\nMeu pedido:\n`;
+
+    selecionados.forEach(p => {
+      msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})\n`;
+    });
+
+    let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
+    msg += `\nTotal: R$ ${total.toFixed(2)}`;
+
+    const link = `https://wa.me/5514982006515?text=${encodeURIComponent(msg)}`;
+    window.open(link, '_blank');
+  }
   window.onload = () => {
   const supabaseClient = supabase.createClient(
     'https://ajuzonfhftbknlmzqygw.supabase.co',
@@ -187,28 +208,6 @@
     let itens = selecionados.reduce((soma, p) => soma + p.quantidade, 0);
     resumoPedido.textContent = `Total: R$ ${total.toFixed(2)} – ${itens} itens`;
   }
-
-  function enviarPedido() {
-  const nome = document.getElementById('nomeCliente').value.trim();
-  if (!nome) return alert('Por favor, informe seu nome!');
-  let endereco = document.getElementById('enderecoCliente').value.trim();
-  let obs = document.getElementById('observacoes').value.trim();
-
-  let msg = `Olá, meu nome é ${nome}\n`;
-  if (endereco) msg += `Endereço: ${endereco}\n`;
-  if (obs) msg += `Observações: ${obs}\n`;
-  msg += `\nMeu pedido:\n`;
-
-  selecionados.forEach(p => {
-    msg += `- ${p.quantidade}x ${p.nome} (R$ ${(p.preco * p.quantidade).toFixed(2)})\n`;
-  });
-
-  let total = selecionados.reduce((soma, p) => soma + (parseFloat(p.preco) * p.quantidade), 0);
-  msg += `\nTotal: R$ ${total.toFixed(2)}`;
-
-  const link = `https://wa.me/5514982006515?text=${encodeURIComponent(msg)}`;
-  window.open(link, '_blank');
-}
 
 carregarDados();
   };
